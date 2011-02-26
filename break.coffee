@@ -9,11 +9,19 @@ class V2
         @y += v.y
         this
 
+    set: (@x, @y) ->
+        this
+
     add: (v) ->
         new V2(@x+v.x, @y+v.y)
 
     muls: (s) ->
         new V2(@x*s, @y*s)
+
+    imuls: (s) ->
+        @x *= s
+        @y *= s
+        this
 
     divs: (s) ->
         this.muls(1/s)
@@ -42,6 +50,13 @@ class Rect
         @right = @center.x + @width*0.5
         @top = @center.y - @height*0.5
         @bottom = @center.y + @height*0.5
+
+    recalc: ->
+        @left = @center.x - @width*0.5
+        @right = @center.x + @width*0.5
+        @top = @center.y - @height*0.5
+        @bottom = @center.y + @height*0.5
+
 
 
 rect = (x, y, width, height) -> new Rect(v2(x, y), width, height)
@@ -79,7 +94,6 @@ class Paddle
     constructor: (@position) ->
         @shape = new Rect(@position, 100, 20)
 
-
 Brick.width = 80
 Brick.height = 30
 
@@ -90,14 +104,28 @@ class Game
         @ctx = @canvas.getContext '2d'
         @scene =
             score: 0
+            balls: 4
             bricks: []
-            ball: new Ball(v2(WIDTH/2, HEIGHT/2), V2.random().muls(280))
+            ball: new Ball(v2(0, 0), v2(0, 0))
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
         for row in [0...4]
             for col in [0...6]
                 x = col*(Brick.width+10)+Brick.width+(row&1)*20
                 y = row*(Brick.height+10)+Brick.height
                 @scene.bricks.push(new Brick(v2(x, y), 10))
+        @newBall()
+        @canvas.onmousemove = (e) =>
+            @scene.paddle.shape.center.x = e.clientX
+            @scene.paddle.shape.recalc()
+
+    newBall: ->
+        ball = @scene.ball
+        ball.shape.center.set(WIDTH/2, HEIGHT/2)
+        if @scene.balls--
+            ball.velocity = v2(Math.random()-0.5, Math.random()).normalize().muls(200)
+        else
+            # game over
+            ball.velocity.set(0, 0)
 
     tick: (t) ->
         @physics(t)
@@ -110,6 +138,9 @@ class Game
         if not (shape.radius < shape.center.x < WIDTH-shape.radius)
             axis = 'x'
         if not (shape.radius < shape.center.y < HEIGHT-shape.radius)
+            if HEIGHT-shape.radius < new_position.y
+                @newBall()
+                return
             if axis is 'x'
                 axis = 'xy'
             else
@@ -151,7 +182,7 @@ class Game
 
 main = ->
     canvas = document.getElementById 'c'
-    window.game = game = new Game(canvas)
+    window['game'] = game = new Game(canvas)
     t0 = new Date()
     i = requestAnimFrame(f =->
         t1 = new Date()
