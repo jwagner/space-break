@@ -99,8 +99,6 @@ Brick.height = 30
 
 class Game
     constructor: (@canvas) ->
-        @canvas.width = WIDTH
-        @canvas.height = HEIGHT
         @ctx = @canvas.getContext '2d'
         @scene =
             score: 0
@@ -111,7 +109,7 @@ class Game
         for row in [0...4]
             for col in [0...6]
                 x = col*(Brick.width+10)+Brick.width+(row&1)*20
-                y = row*(Brick.height+10)+Brick.height
+                y = row*(Brick.height+10)+Brick.height+50
                 @scene.bricks.push(new Brick(v2(x, y), 10))
         @newBall()
         @canvas.onmousemove = (e) =>
@@ -169,6 +167,16 @@ class Game
             if not brick.destroyed
                 this.renderRect(brick.shape)
         this.renderRect(@scene.paddle.shape)
+
+        @ctx.textAlign = 'center'
+        @ctx.textBaseline = 'top'
+        @ctx.font = '50px geo'
+        @ctx.fillText(@scene.score, WIDTH/2, -5)
+        @ctx.font = '16px geo'
+        if @scene.balls >= 0
+            @ctx.fillText("#{@scene.balls} balls left", WIDTH/2, 40)
+        else
+            @ctx.fillText("GAME OVER", WIDTH/2, 40)
         return
 
     renderCircle: (circle) ->
@@ -182,6 +190,8 @@ class Game
 
 main = ->
     canvas = document.getElementById 'c'
+    canvas.width = WIDTH
+    canvas.height = HEIGHT
     window['game'] = game = new Game(canvas)
     t0 = new Date()
     i = requestAnimFrame(f =->
