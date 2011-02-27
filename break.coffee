@@ -95,6 +95,9 @@ class Brick
 class Paddle
     constructor: (@position) ->
         @shape = new Rect(@position, 100, 20)
+        @velocity = 0
+        @acceleration = 0
+        @target = @position.x
 
 Brick.width = 80
 Brick.height = 30
@@ -115,8 +118,7 @@ class Game
                 @scene.bricks.push(new Brick(v2(x, y), 10))
         @newBall()
         @canvas.onmousemove = (e) =>
-            @scene.paddle.shape.center.x = e.clientX
-            @scene.paddle.shape.recalc()
+            @scene.paddle.target = e.clientX
 
     newBall: ->
         ball = @scene.ball
@@ -132,6 +134,13 @@ class Game
         @render()
 
     physics: (t) ->
+
+        @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.1
+        @scene.paddle.velocity += @scene.paddle.acceleration
+        @scene.paddle.velocity *= 0.7
+        @scene.paddle.shape.center.x += @scene.paddle.velocity
+        @scene.paddle.shape.recalc()
+
         ball = @scene.ball
         shape = ball.shape
         new_position = ball.position.add(ball.velocity.muls(t))
@@ -145,7 +154,7 @@ class Game
                 axis = 'xy'
             else
                 axis = 'y'
-        if not axis and not axis = rect_circle_collision(@scene.paddle.shape, ball.shape, new_position)
+        if not axis and not ((axis = rect_circle_collision(@scene.paddle.shape, ball.shape, new_position)) and paddle = true)
             for brick in @scene.bricks
                 if not brick.destroyed and axis = rect_circle_collision(brick.shape, ball.shape, new_position)
                     brick.destroyed = true
@@ -159,6 +168,8 @@ class Game
         else if axis is 'xy'
             ball.velocity.x *= -1
             ball.velocity.y *= -1
+        if paddle
+            ball.velocity.x += @scene.paddle.velocity*10
         ball.position.iadd(ball.velocity.muls(t))
 
 
