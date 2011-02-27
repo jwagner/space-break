@@ -1,5 +1,7 @@
 WIDTH = 640
 HEIGHT = 480
+RESOURCES =
+    background: 'gfx/background0.jpg'
 
 class V2
     constructor: (@x, @y) ->
@@ -98,7 +100,7 @@ Brick.width = 80
 Brick.height = 30
 
 class Game
-    constructor: (@canvas) ->
+    constructor: (@canvas, @resources) ->
         @ctx = @canvas.getContext '2d'
         @scene =
             score: 0
@@ -161,7 +163,8 @@ class Game
 
 
     render: ->
-        @ctx.clearRect(0, 0, WIDTH, HEIGHT)
+        @ctx.drawImage(@resources['background'], 0, 0)
+        @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
         this.renderCircle @scene.ball.shape
         for brick in @scene.bricks
             if not brick.destroyed
@@ -188,11 +191,79 @@ class Game
     renderRect: (rect) ->
         @ctx.fillRect(rect.left, rect.top, rect.width, rect.height)
 
+class Loader
+    constructor: (resources) ->
+        @resources = {}
+        @pending = 0
+        @failed = 0
+        @load(resources)
+
+    _success: (name, data) ->
+        @pending--
+        @resources[name] = data
+
+    _error: (name, error) ->
+        @failed++
+        @pending--
+        error.resource = name
+        throw error
+
+    load: (resources) ->
+        for name, src of resources
+            if /|.(jpe?g|gif|png)/.test src
+                @loadImage(name, src)
+            else if src.test /\.(og(g|a)|mp3)$/
+                @loadAudio(name, src)
+            else
+                throw 'unknow resource type ' + src
+            @pending++
+
+    loadImage: (name, src) ->
+        img = new Image()
+        img.onload = => @_success(name, img)
+        img.onerror = (e) => @_error(name, e)
+        img.src = src
+
+    loadAudio: (name, src) ->
+        audio = document.createElement('audio')
+        audio.preload = 'auto'
+        audio.oncanplaythough = =>
+            audio.currentTime = 0.0
+            audio.pause()
+            audio.volume = 1.0
+            @_success(name, audio)
+        audio.onerror = (e) =>
+            @_error(name, e)
+        audio.src = src
+        # gets all the browsers to preload the audio file
+        audio.load()
+        audio.play()
+        audio.volume = 0
+
 main = ->
     canvas = document.getElementById 'c'
     canvas.width = WIDTH
     canvas.height = HEIGHT
-    window['game'] = game = new Game(canvas)
+    ctx = canvas.getContext '2d'
+    loader = new Loader(RESOURCES)
+    check = =>
+        if loader.pending > 0
+            ctx.clearRect(0, 0, WIDTH, HEIGHT)
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'top'
+            ctx.font = '50px geo'
+            ctx.fillText('LOADING', WIDTH/2, 100)
+            ctx.font = '16px geo'
+            ctx.fillText("#{loader.pending} resources left", WIDTH/2, 140)
+ 
+            setTimeout(check, 100)
+        else
+            start_game(canvas, loader.resources)
+    check()
+
+
+start_game = (canvas, resources) ->
+    window['game'] = game = new Game(canvas, resources)
     t0 = new Date()
     i = requestAnimFrame(f =->
         t1 = new Date()
