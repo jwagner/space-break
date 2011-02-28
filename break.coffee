@@ -2,6 +2,9 @@ WIDTH = 640
 HEIGHT = 480
 RESOURCES =
     background: 'gfx/background0.jpg'
+    brick: 'gfx/brick.png'
+
+resources = {}
 
 class V2
     constructor: (@x, @y) ->
@@ -76,7 +79,6 @@ rect_circle_collision = (rect, circle, center) ->
         else
             'xy'
 
-
 class Circle
     constructor: (@center, @radius) ->
 
@@ -91,6 +93,11 @@ class Brick
         @shape = new Rect(@position, Brick.width, Brick.height)
         @destroyed = false
 
+    draw: (ctx) ->
+        ctx.drawImage(resources['brick'], @shape.left-10, @shape.top-10)
+
+Brick.width = 80
+Brick.height = 30
 
 class Paddle
     constructor: (@position) ->
@@ -99,11 +106,8 @@ class Paddle
         @acceleration = 0
         @target = @position.x
 
-Brick.width = 80
-Brick.height = 30
-
 class Game
-    constructor: (@canvas, @resources) ->
+    constructor: (@canvas) ->
         @ctx = @canvas.getContext '2d'
         @scene =
             score: 0
@@ -174,12 +178,12 @@ class Game
 
 
     render: ->
-        @ctx.drawImage(@resources['background'], 0, 0)
+        @ctx.drawImage(resources['background'], 0, 0)
         @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
         this.renderCircle @scene.ball.shape
         for brick in @scene.bricks
             if not brick.destroyed
-                this.renderRect(brick.shape)
+                brick.draw(@ctx)
         this.renderRect(@scene.paddle.shape)
 
         @ctx.textAlign = 'center'
@@ -257,6 +261,7 @@ main = ->
     canvas.height = HEIGHT
     ctx = canvas.getContext '2d'
     loader = new Loader(RESOURCES)
+    resources = loader.resources
     check = =>
         if loader.pending > 0
             ctx.clearRect(0, 0, WIDTH, HEIGHT)
@@ -269,12 +274,12 @@ main = ->
  
             setTimeout(check, 100)
         else
-            start_game(canvas, loader.resources)
+            start_game(canvas)
     check()
 
 
-start_game = (canvas, resources) ->
-    window['game'] = game = new Game(canvas, resources)
+start_game = (canvas) ->
+    window['game'] = game = new Game(canvas)
     t0 = new Date()
     i = requestAnimFrame(f =->
         t1 = new Date()
