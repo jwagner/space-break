@@ -3,6 +3,8 @@ HEIGHT = 480
 RESOURCES =
     background: 'gfx/background0.jpg'
     brick: 'gfx/brick.png'
+    ball: 'gfx/ball.png'
+    paddle: 'gfx/paddle.png'
 
 resources = {}
 
@@ -87,6 +89,9 @@ class Ball
     constructor: (@position, @velocity) ->
         @shape = new Circle(@position, 10)
 
+    draw: (ctx) ->
+        img = resources['ball']
+        ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
 
 class Brick
     constructor: (@position) ->
@@ -105,6 +110,10 @@ class Paddle
         @velocity = 0
         @acceleration = 0
         @target = @position.x
+
+    draw: (ctx) ->
+        ctx.drawImage(resources['paddle'], @shape.left-20, @shape.top-20)
+
 
 class Game
     constructor: (@canvas) ->
@@ -148,10 +157,10 @@ class Game
         ball = @scene.ball
         shape = ball.shape
         new_position = ball.position.add(ball.velocity.muls(t))
-        if not (shape.radius < shape.center.x < WIDTH-shape.radius)
+        if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
             axis = 'x'
-        if not (shape.radius < shape.center.y < HEIGHT-shape.radius)
-            if HEIGHT-shape.radius < new_position.y
+        if not (shape.radius <= shape.center.y <= HEIGHT-shape.radius)
+            if HEIGHT-shape.radius <= new_position.y
                 @newBall()
                 return
             if axis is 'x'
@@ -166,25 +175,30 @@ class Game
                     break
 
         if axis is 'x'
-            ball.velocity.x *= -1
+            ball.velocity.x *= -1.01
         else if axis is 'y'
-            ball.velocity.y *= -1
+            ball.velocity.y *= -1.01
         else if axis is 'xy'
-            ball.velocity.x *= -1
-            ball.velocity.y *= -1
+            ball.velocity.x *= -1.01
+            ball.velocity.y *= -1.01
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
+        if axis:
+            # some stupid bias to fix some collision detections
+            # problems until proper collision resolution is
+            # implemented
+            t *= 1.01
         ball.position.iadd(ball.velocity.muls(t))
 
 
     render: ->
         @ctx.drawImage(resources['background'], 0, 0)
         @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-        this.renderCircle @scene.ball.shape
+        @scene.paddle.draw(@ctx)
         for brick in @scene.bricks
             if not brick.destroyed
                 brick.draw(@ctx)
-        this.renderRect(@scene.paddle.shape)
+        @scene.ball.draw(@ctx)
 
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
@@ -197,14 +211,6 @@ class Game
             @ctx.fillText("GAME OVER", WIDTH/2, 40)
         return
 
-    renderCircle: (circle) ->
-        @ctx.beginPath()
-        @ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI*2, true)
-        @ctx.closePath()
-        @ctx.fill()
-
-    renderRect: (rect) ->
-        @ctx.fillRect(rect.left, rect.top, rect.width, rect.height)
 
 class Loader
     constructor: (resources) ->
@@ -254,6 +260,7 @@ class Loader
         audio.load()
         audio.play()
         audio.volume = 0
+
 
 main = ->
     canvas = document.getElementById 'c'
