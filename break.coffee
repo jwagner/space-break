@@ -226,17 +226,21 @@ class Game
                     break
 
         if axis is 'x'
-            ball.velocity.x *= -1.01
+            ball.velocity.x *= -1
         else if axis is 'y'
-            ball.velocity.y *= -1.01
+            ball.velocity.y *= -1
         else if axis is 'xy'
-            ball.velocity.x *= -1.01
-            ball.velocity.y *= -1.01
+            ball.velocity.x *= -1
+            ball.velocity.y *= -1
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
-        # limit speed of ball to 500 px/s
-        ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag(), 500))
         if axis
+            # we don't want the ball to move to flat because it's annoying
+            if Math.abs(ball.velocity.y*2) < Math.abs(ball.velocity.x)
+                ball.velocity.x *= 0.8
+            # speed up ball after every bounce with an upper limit of
+            # 500 px/s
+            ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag()*1.01, 500))
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         ball.position.iadd(ball.velocity.muls(t))
         @particles.tick(t)
