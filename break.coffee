@@ -166,6 +166,7 @@ class Game
     constructor: (@canvas) ->
         @ctx = @canvas.getContext '2d'
         @scene =
+            level: 0
             score: 0
             balls: 4
             bricks: []
@@ -176,8 +177,8 @@ class Game
         for row in [0...rows]
             for col in [0...cols]
                 x = col*(Brick.width+10)+Brick.width+(row&1)*20
-                y = row*(Brick.height+10)+Brick.height+50
-                @scene.bricks.push(new Brick(v2(x, y), 10))
+                y = row*(Brick.height+10)+Brick.height+80
+                @scene.bricks.push(new Brick(v2(x, y)))
         @particles = new ParticleSystem(100)
         @newBall()
         @canvas.onmousemove = (e) =>
@@ -185,7 +186,7 @@ class Game
 
     newBall: ->
         ball = @scene.ball
-        ball.shape.center.set(WIDTH/2, HEIGHT/2)
+        ball.shape.center.set(WIDTH/2, HEIGHT/3*2)
         if @scene.balls--
             ball.velocity = v2(Math.random()-0.5, Math.random()).normalize().muls(200)
         else
@@ -233,6 +234,8 @@ class Game
             ball.velocity.y *= -1.01
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
+        # limit speed of ball to 500 px/s
+        ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag(), 500))
         if axis
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         ball.position.iadd(ball.velocity.muls(t))
