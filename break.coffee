@@ -105,11 +105,11 @@ class Brick
         @destroyed = false
 
     draw: (ctx) ->
-        ctx.drawImage(resources['brick'], @shape.left-10, @shape.top-10)
+        ctx.drawImage(resources['brick'], @shape.left-5, @shape.top-5)
 
 
-Brick.width = 80
-Brick.height = 30
+Brick.width = 40
+Brick.height = 20
 
 class Paddle
     constructor: (@position) ->
@@ -171,8 +171,10 @@ class Game
             bricks: []
             ball: new Ball(v2(0, 0), v2(0, 0))
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
-        for row in [0...4]
-            for col in [0...6]
+        cols = Math.floor(WIDTH/(Brick.width+10))
+        rows = Math.floor((HEIGHT-100)*0.6/(Brick.height+10))
+        for row in [0...rows]
+            for col in [0...cols]
                 x = col*(Brick.width+10)+Brick.width+(row&1)*20
                 y = row*(Brick.height+10)+Brick.height+50
                 @scene.bricks.push(new Brick(v2(x, y), 10))
@@ -288,6 +290,7 @@ class Loader
             else
                 throw 'unknow resource type ' + src
             @pending++
+        return
 
     loadImage: (name, src) ->
         img = new Image()
