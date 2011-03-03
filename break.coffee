@@ -5,8 +5,80 @@ RESOURCES =
     brick: 'gfx/brick.png'
     ball: 'gfx/ball.png'
     paddle: 'gfx/paddle.png'
+    pong: 'sfx/pong.ogg'
 
 resources = {}
+
+class JSPerfHub
+    colors: ['red', 'orange', 'yellow', 'green', 'blue']
+    sampleWidth: 2
+    constructor: (id='perfhub') ->
+        @canvas = document.getElementById(id)
+        @ctx = @canvas.getContext('2d')
+        @buckets = {}
+        # ordered set of keys
+        @buckets.keys = []
+        @buckets.values = []
+        @sample = 0
+        @t = new Date()
+        @scale = Infinity
+        @bucketSize = @canvas.width/@sampleWidth
+        @ctx.font = '12px geo'
+        @fontHeight = 16
+
+     start: ->
+        @sample = (@sample+1)%@bucketSize
+        @t = new Date()
+    
+
+    tick: (name) ->
+        bucket = @buckets[name]
+        if not bucket
+            bucket = @buckets[name] =
+                average: 0
+                samples: 0 for [0..@bucketSize]
+            @buckets.keys.push(name)
+            @buckets.values.push(bucket)
+        t = new Date()
+        td = t-@t
+        @t = t
+        bucket.average -= bucket.samples[@sample]/@bucketSize
+        bucket.samples[@sample] = td
+        bucket.average += td/@bucketSize
+
+    draw: ->
+        total = 0
+        textSpacing = 4
+        textHeight = 2*textSpacing+@fontHeight*(@buckets.keys.length+2)
+        availableHeight = @canvas.height-textHeight
+        for bucket in @buckets.values
+            total += bucket.average
+        if availableHeight/total < @scale
+            @scale = availableHeight/total/2
+            @ctx.fillStyle = 'black'
+            @ctx.fillRect(0, 0, @canvas.width, @canvas.height)
+        x = @sample*@sampleWidth
+        y = @canvas.height
+        total = 0
+        i = 0
+        @ctx.fillStyle = '#111'
+        @ctx.fillRect(0, 0, @canvas.width, textHeight)
+        for name in @buckets.keys
+            color = @colors[(i++)%@colors.length]
+            bucket = @buckets[name]
+            sample = bucket.samples[@sample]
+            height = sample*@scale
+            y -= height
+            @ctx.fillStyle = color
+            @ctx.fillRect(x, y, @sampleWidth, height)
+            @ctx.fillText("#{name}: #{Math.round(bucket.average*100)/100} ms", textSpacing, textSpacing+@fontHeight*i)
+            total += bucket.average
+        @ctx.fillStyle = 'white'
+        @ctx.fillText("total: #{Math.round(total*100)/100} ms / #{Math.round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
+        @ctx.fillStyle = 'black'
+        @ctx.fillRect(x, 0, @sampleWidth, y)
+        return
+
 
 class V2
     constructor: (@x, @y) ->
@@ -167,6 +239,7 @@ class Game
         @ctx = @canvas.getContext '2d'
         @scene =
             level: 0
+            gameover: false
             score: 0
             balls: 3
             bricks: []
@@ -176,6 +249,8 @@ class Game
         @nextLevel()
         @canvas.onmousemove = (e) =>
             @scene.paddle.target = e.clientX
+        @perfhub = new JSPerfHub()
+        @perfhub.start()
 
     nextLevel: ->
         @scene.balls += 2
@@ -190,33 +265,48 @@ class Game
         @newBall()
 
     newBall: ->
-        ball = @scene.ball
-        ball.shape.center.set(WIDTH/2, HEIGHT/3*2)
         if @scene.balls--
+            ball = @scene.ball
+            ball.shape.center.set(WIDTH/2, HEIGHT/3*2)
             ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(200)
         else
-            # game over
-            ball.velocity.set(0, 0)
-            ball.shape.center.set(-100, 0)
+            @gameover = true
 
     tick: (t) ->
-        @physics(t)
-        @render()
+        if not @gameover
+            @perfhub.tick('waiting')
+            @physics(t)
+            @perfhub.tick('physics')
+            @render()
+            @perfhub.tick('render')
+            @perfhub.draw()
+            @perfhub.tick('perfhub')
+            @perfhub.start()
 
     physics: (t) ->
+
+        ball = @scene.ball
+        shape = ball.shape
 
         @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.1
         @scene.paddle.velocity += @scene.paddle.acceleration
         @scene.paddle.velocity *= 0.7
         @scene.paddle.shape.center.x += @scene.paddle.velocity
         @scene.paddle.shape.recalc()
+        if rect_circle_collision(@scene.paddle.shape, shape, shape.center)
+            # try to push ball
+            shape.center.x += @scene.paddle.velocity
+            # but not over the edge
+            if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
+                shape.center.x -= @scene.paddle.velocity
+                @scene.paddle.shape.center.x -= @scene.paddle.velocity
+                @scene.paddle.shape.recalc()
 
-        ball = @scene.ball
-        shape = ball.shape
+
         new_position = ball.position.add(ball.velocity.muls(t))
-        if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
+        if not (shape.radius <= new_position.x <= WIDTH-shape.radius)
             axis = 'x'
-        if not (shape.radius <= shape.center.y <= HEIGHT-shape.radius)
+        if not (shape.radius <= new_position.y <= HEIGHT-shape.radius)
             if HEIGHT-shape.radius <= new_position.y
                 @newBall()
                 return
@@ -224,9 +314,13 @@ class Game
                 axis = 'xy'
             else
                 axis = 'y'
-        if not axis and not ((axis = rect_circle_collision(@scene.paddle.shape, ball.shape, new_position)) and paddle = true)
+        if not axis and not ((axis = rect_circle_collision(@scene.paddle.shape, shape, new_position)) and paddle = true)
             for brick in @scene.bricks
-                if not brick.destroyed and axis = rect_circle_collision(brick.shape, ball.shape, new_position)
+                if not brick.destroyed and axis = rect_circle_collision(brick.shape, shape, new_position)
+                    audio = resources['pong']
+                    if audio.paused || audio.ended
+                        audio.currentTime = 0
+                        audio.play()
                     brick.destroyed = true
                     @scene.score += 100
                     break
@@ -248,7 +342,8 @@ class Game
             # 400 px/s
             ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag()*1.01, 400))
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
-        ball.position.iadd(ball.velocity.muls(t))
+        else
+            ball.position.iadd(ball.velocity.muls(t))
         @particles.tick(t)
         for brick in @scene.bricks
             if not brick.destroyed
@@ -274,10 +369,11 @@ class Game
         @ctx.font = '50px geo'
         @ctx.fillText(@scene.score, WIDTH/2, -5)
         @ctx.font = '16px geo'
-        if @scene.balls >= 0
+        if not @gameover
             @ctx.fillText("#{@scene.balls} balls left", WIDTH/2, 40)
         else
-            @ctx.fillText("GAME OVER", WIDTH/2, 40)
+            @ctx.fillStyle = 'rgba(255, 0, 0, 1.0)'
+            @ctx.fillText("GAME OVER", WIDTH/2, 60)
         return
 
 
@@ -300,9 +396,9 @@ class Loader
 
     load: (resources) ->
         for name, src of resources
-            if /|.(jpe?g|gif|png)/.test src
+            if /\.(jpe?g|gif|png)$/.test src
                 @loadImage(name, src)
-            else if src.test /\.(og(g|a)|mp3)$/
+            else if /\.(og(g|a)|mp3)$/.test src
                 @loadAudio(name, src)
             else
                 throw 'unknow resource type ' + src
@@ -318,13 +414,13 @@ class Loader
     loadAudio: (name, src) ->
         audio = document.createElement('audio')
         audio.preload = 'auto'
-        audio.oncanplaythough = =>
+        canplaythough = =>
             audio.currentTime = 0.0
             audio.pause()
             audio.volume = 1.0
             @_success(name, audio)
-        audio.onerror = (e) =>
-            @_error(name, e)
+        audio.addEventListener('canplaythrough', canplaythough, false)
+        audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
         audio.src = src
         # gets all the browsers to preload the audio file
         audio.load()
@@ -358,36 +454,20 @@ main = ->
 start_game = (canvas) ->
     window['game'] = game = new Game(canvas)
     t0 = new Date()
-    i = requestAnimFrame(f =->
+    callback = ->
         t1 = new Date()
         td = t1-t0
         t0 = t1
         game.tick(td*0.001)
+    if requestAnimFrame
+        f = ->
+            callback()
+            requestAnimFrame(f, canvas)
         requestAnimFrame(f, canvas)
-    , canvas)
+    else
+        setInterval(callback, 1000/60)
     game.render()
 
-`window['requestAnimFrame'] = (function(){
-return  window['requestAnimationFrame'] || 
-window['webkitRequestAnimationFrame'] || 
-window['mozRequestAnimationFrame'] || 
-window['oRequestAnimationFrame']
-|| 
-window['msRequestAnimationFrame']
-|| 
-function(/*
-function
-*/
-callback,
-/*
-DOMElement
-*/
-element){
-window.setTimeout(callback,
-1000
-/
-60);
-};
-})();`
+window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
 main()
