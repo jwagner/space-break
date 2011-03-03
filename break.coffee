@@ -57,12 +57,13 @@ class JSPerfHub
             @scale = availableHeight/total/2
             @ctx.fillStyle = 'black'
             @ctx.fillRect(0, 0, @canvas.width, @canvas.height)
-        x = @sample*@sampleWidth
+        x = @canvas.width-@sampleWidth
         y = @canvas.height
         total = 0
         i = 0
         @ctx.fillStyle = '#111'
         @ctx.fillRect(0, 0, @canvas.width, textHeight)
+        @ctx.drawImage(@canvas, -1, 0)
         for name in @buckets.keys
             color = @colors[(i++)%@colors.length]
             bucket = @buckets[name]
