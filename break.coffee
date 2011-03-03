@@ -130,6 +130,32 @@ V2.random = ->
 v2 = (x, y) -> new V2(x, y)
 
 
+class AudioPlayer
+    constructor: ->
+        @pool = {}
+
+    play: (name) ->
+        pool = @pool[name]
+        if not pool
+            pool = @pool[name] = [resources[name]]
+        for audio in pool
+            if audio.readyState == 4 and audio.paused or audio.ended
+                if audio.currentTime == 0
+                    audio.play()
+                    console.log('reuse')
+                    return
+                else
+                    # hack for chrome/webkit
+                    audio.currentTime = 0
+                    audio.pause()
+        audio = audio.cloneNode(true)
+        console.log('clone')
+        #audio.currentTime = 0.0
+        audio.play()
+        pool.push(audio)
+
+audioPlayer = new AudioPlayer()
+
 class Rect
     constructor: (@center, @width, @height) ->
         @left = @center.x - @width*0.5
@@ -318,10 +344,6 @@ class Game
         if not axis and not ((axis = rect_circle_collision(@scene.paddle.shape, shape, new_position)) and paddle = true)
             for brick in @scene.bricks
                 if not brick.destroyed and axis = rect_circle_collision(brick.shape, shape, new_position)
-                    audio = resources['pong']
-                    if audio.paused || audio.ended
-                        audio.currentTime = 0
-                        audio.play()
                     brick.destroyed = true
                     @scene.score += 100
                     break
@@ -336,6 +358,7 @@ class Game
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
         if axis
+            audioPlayer.play('pong')
             # we don't want the ball to move to flat because it's annoying
             if Math.abs(ball.velocity.y*2) < Math.abs(ball.velocity.x)
                 ball.velocity.x *= 0.8
@@ -415,13 +438,18 @@ class Loader
     loadAudio: (name, src) ->
         audio = document.createElement('audio')
         audio.preload = 'auto'
+        audio.autobuffer = true
         canplaythough = =>
-            audio.currentTime = 0.0
             audio.pause()
             audio.volume = 1.0
             @_success(name, audio)
         audio.addEventListener('canplaythrough', canplaythough, false)
         audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
+        if ((src.slice(-4) == '.ogg' || src.slice(-4) == '.oga') &&
+                audio.canPlayType('audio/ogg; codecs="vorbis"') != 'probably' ||
+                        /webkit/i.test(navigator.userAgent))
+            console.log('using mp3')
+            src = src.slice(0, src.length-3) + 'mp3'
         audio.src = src
         # gets all the browsers to preload the audio file
         audio.load()
