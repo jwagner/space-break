@@ -12,6 +12,7 @@ RESOURCES =
     ball: 'gfx/ball.png'
     paddle: 'gfx/paddle.png'
     pong: 'sfx/pong.ogg'
+INTERVAL = false
 
 resources = {}
 
@@ -90,12 +91,12 @@ class InputHandler
     constructor: (@element) ->
         @target = WIDTH/2
         # handle scoping
-        window.addEventListener('mousemove', (e) => @onmove(e))
+        window.addEventListener('mousemove', ((e) => @onmove(e)), false)
         ontouch = (e) =>
             @onmove(e.touches[0])
             e.preventDefault()
-        @element.addEventListener 'touchstart', ontouch
-        @element.addEventListener 'touchmove', ontouch
+        @element.addEventListener('touchstart', ontouch, false)
+        @element.addEventListener('touchmove', ontouch, false)
         # we assume that there is no offsetParent and the offset will never
         # change
         @left = @element.offsetLeft
@@ -155,6 +156,7 @@ v2 = (x, y) -> new V2(x, y)
 class AudioPlayer
     constructor: ->
         @pool = {}
+        @maxPoolSize = 8
 
     play: (name) ->
         if not AUDIO
@@ -172,11 +174,12 @@ class AudioPlayer
                     # hack for chrome/webkit
                     audio.currentTime = 0
                     audio.pause()
-        audio = audio.cloneNode(true)
-        console.log('clone')
-        #audio.currentTime = 0.0
-        audio.play()
-        pool.push(audio)
+        if pool.length < @maxPoolSize
+            audio = audio.cloneNode(true)
+            console.log('clone')
+            #audio.currentTime = 0.0
+            audio.play()
+            pool.push(audio)
 
 audioPlayer = new AudioPlayer()
 
@@ -523,14 +526,20 @@ start_game = (canvas) ->
         t1 = new Date()
         td = t1-t0
         t0 = t1
-        game.tick(td*0.001)
+        if not game.tick(td*0.001)
+            if INTERVAL
+                clearInterval(INTERVAL)
+            canvas.onclick = ->
+                start_game(canvas)
+            return false
+        return true
     if requestAnimFrame
         f = ->
-            callback()
-            requestAnimFrame(f, canvas)
+            if callback()
+                requestAnimFrame(f, canvas)
         requestAnimFrame(f, canvas)
     else
-        setInterval(callback, 1000/30)
+        INTERVAL = setInterval(callback, 1000/30)
     game.render()
 
 window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
