@@ -1,5 +1,11 @@
 WIDTH = 640
 HEIGHT = 480
+SLOW = false
+# ugly
+if(navigator.userAgent.match(/iPad/i))
+    SLOW = true
+
+AUDIO = true
 RESOURCES =
     background: 'gfx/background0.jpg'
     brick: 'gfx/brick.png'
@@ -135,6 +141,8 @@ class AudioPlayer
         @pool = {}
 
     play: (name) ->
+        if not AUDIO
+            return
         pool = @pool[name]
         if not pool
             pool = @pool[name] = [resources[name]]
@@ -274,7 +282,7 @@ class Game
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
         @particles = new ParticleSystem(100)
         @nextLevel()
-        @canvas.onmousemove = (e) =>
+        window.onmousemove = (e) =>
             @scene.paddle.target = e.clientX
         @perfhub = new JSPerfHub()
         @perfhub.start()
@@ -376,10 +384,12 @@ class Game
 
 
     render: ->
-        @ctx.globalAlpha = 0.5
+        if not SLOW
+            @ctx.globalAlpha = 0.5
         @ctx.drawImage(resources['background'], 0, 0)
-        @ctx.globalAlpha = 1.0
-        @particles.draw(@ctx)
+        if not SLOW
+            @ctx.globalAlpha = 1.0
+            @particles.draw(@ctx)
         @scene.paddle.draw(@ctx)
         for brick in @scene.bricks
             if not brick.destroyed
@@ -387,7 +397,10 @@ class Game
         @scene.ball.draw(@ctx)
 
 
-        @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+        if not SLOW
+            @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+        else
+            @ctx.fillStyle = 'white'
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
         @ctx.font = '50px geo'
@@ -396,7 +409,7 @@ class Game
         if not @gameover
             @ctx.fillText("#{@scene.balls} balls left", WIDTH/2, 40)
         else
-            @ctx.fillStyle = 'rgba(255, 0, 0, 1.0)'
+            @ctx.fillStyle = 'red'
             @ctx.fillText("GAME OVER", WIDTH/2, 60)
         return
 
@@ -406,6 +419,7 @@ class Loader
         @resources = {}
         @pending = 0
         @failed = 0
+        @audio = true
         @load(resources)
 
     _success: (name, data) ->
@@ -454,6 +468,11 @@ class Loader
         # gets all the browsers to preload the audio file
         audio.load()
         audio.play()
+        if audio.paused
+            # mobile safari doesn't allow us to control media elements
+            # so no audio :(
+            @audio = false
+            window.setTimeout((=> @_error(name, 'audio not play()able')), 1)
         audio.volume = 0
 
 
@@ -476,6 +495,7 @@ main = ->
  
             setTimeout(check, 100)
         else
+            AUDIO = loader.audio
             start_game(canvas)
     check()
 
@@ -494,7 +514,7 @@ start_game = (canvas) ->
             requestAnimFrame(f, canvas)
         requestAnimFrame(f, canvas)
     else
-        setInterval(callback, 1000/60)
+        setInterval(callback, 1000/30)
     game.render()
 
 window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
