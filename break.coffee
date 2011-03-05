@@ -546,4 +546,10 @@ start_game = (canvas) ->
 
 window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
-main()
+applicationCache.oncached = applicationCache.onnoupdate = ->
+    main()
+
+applicationCache.onupdateready = ->
+    applicationCache.swapCache()
+    console.log('cache swaped')
+    main()
