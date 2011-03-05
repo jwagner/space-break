@@ -320,7 +320,8 @@ class Game
     newBall: ->
         if @scene.balls--
             ball = @scene.ball
-            ball.shape.center.set(WIDTH/2, HEIGHT/3*2)
+            x = Math.max(Math.min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
+            ball.shape.center.set(x, HEIGHT/3*2)
             ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(200)
         else
             @gameover = true
@@ -504,6 +505,7 @@ main = ->
     resources = loader.resources
     check = =>
         if loader.pending > 0
+            ctx.fillStyle = 'white'
             ctx.clearRect(0, 0, WIDTH, HEIGHT)
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
