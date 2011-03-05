@@ -5,11 +5,7 @@ body {
     background: black;
     font-family: georgia, sans-serif;
     color: #84a4ff;
-}
-h1 {
-    text-shadow: 0 0 25px #94b4ff;
-    font-size: 40px;
-    text-align: center;
+    font-size: 14px;
 }
 #c {
     border: 5px solid #84a4ff;
@@ -26,8 +22,8 @@ h1 {
         linear,
         left bottom,
         left top,
-        color-stop(0.0, rgb(21,21,21)),
-        color-stop(1.0, rgb(17,17,17))
+        color-stop(0.0, rgb(31,31,31)),
+        color-stop(1.0, rgb(7,7,7))
     );
     background-image: -moz-linear-gradient(
         center bottom,
