@@ -86,6 +86,19 @@ class JSPerfHub
         @ctx.fillRect(x, 0, @sampleWidth, y)
         return
 
+class InputHandler
+    constructor: (@element) ->
+        @target = WIDTH/2
+        # handle scoping
+        window.addEventListener('mousemove', (e) => @onmove(e))
+        ontouch = (e) =>
+            @onmove(e.touches[0])
+            e.preventDefault()
+        @element.addEventListener 'touchstart', ontouch
+        @element.addEventListener 'touchmove', ontouch
+
+    onmove: (e) ->
+        @target = e.clientX
 
 class V2
     constructor: (@x, @y) ->
@@ -282,10 +295,9 @@ class Game
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
         @particles = new ParticleSystem(100)
         @nextLevel()
-        window.onmousemove = (e) =>
-            @scene.paddle.target = e.clientX
         @perfhub = new JSPerfHub()
         @perfhub.start()
+        @input = new InputHandler(@canvas)
 
     nextLevel: ->
         @scene.balls += 2
@@ -323,7 +335,8 @@ class Game
         ball = @scene.ball
         shape = ball.shape
 
-        @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.1
+        @scene.paddle.target = @input.target
+        @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.2
         @scene.paddle.velocity += @scene.paddle.acceleration
         @scene.paddle.velocity *= 0.7
         @scene.paddle.shape.center.x += @scene.paddle.velocity
