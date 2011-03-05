@@ -96,9 +96,12 @@ class InputHandler
             e.preventDefault()
         @element.addEventListener 'touchstart', ontouch
         @element.addEventListener 'touchmove', ontouch
+        # we assume that there is no offsetParent and the offset will never
+        # change
+        @left = @element.offsetLeft
 
     onmove: (e) ->
-        @target = e.clientX
+        @target = e.clientX-@left
 
 class V2
     constructor: (@x, @y) ->
@@ -326,7 +329,7 @@ class Game
             @perfhub.tick('physics')
             @render()
             @perfhub.tick('render')
-            @perfhub.draw()
+            #@perfhub.draw()
             @perfhub.tick('perfhub')
             @perfhub.start()
 
@@ -402,7 +405,7 @@ class Game
         @ctx.drawImage(resources['background'], 0, 0)
         if not SLOW
             @ctx.globalAlpha = 1.0
-            @particles.draw(@ctx)
+        @particles.draw(@ctx)
         @scene.paddle.draw(@ctx)
         for brick in @scene.bricks
             if not brick.destroyed

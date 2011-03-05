@@ -1,13 +1,36 @@
 <!DOCTYPE HTML>
 <html manifest="cache.manifest">
 <head>
-<title>Coffee Break</title>
-<style>body{margin:0;}</style>
-<link href='http://fonts.googleapis.com/css?family=Geo' rel='stylesheet' type='text/css'>
+    <title>Coffee Break</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" /> 
+    <meta name="viewport" content="width=device-width,user-scalable=no,maximum-scale=1.0" /> 
+
+    <link href='http://fonts.googleapis.com/css?family=Geo' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
-<canvas id="c"></canvas>
-<canvas id="perfhub" width="256" height="256"></canvas>
-<script src="break.js"></script>
+    <div id="header"> 
+        <div> 
+            <a href="http://29a.ch/">29a.ch</a><br /><a href="http://twitter.com/share" class="twitter-share-button" data-url="http://29a.ch/2010/12/15/particle-chaos-html5-canvas-demo" data-text="Chaotic Particles HTML5 Canvas Demo" data-count="horizontal" data-via="29a_ch">Tweet</a> 
+            </div> 
+            <div><a href="http://29a.ch/2010/12/15/particle-chaos-html5-canvas-demo">How this<br />Works</a></div> 
+            <div><a href="http://29a.ch/experiments/">More<br />Experiments</a></div> 
+            <ul class="imagelist"> 
+            <li><a href="/jswars/"><img src="/experiments/jswars.jpg"></a></li> 
+            <li><a href="/2010/6/2/realtime-raytracing-in-javascript"><img src="/experiments/rtrt.jpg"></a></li> 
+            <li><a href="/2010/5/17/path-tracing-a-cornell-box-in-javascript"><img src="/experiments/cornell.jpg"></a></li> 
+            <li><a href="/2010/3/24/normal-mapping-with-javascript-and-canvas-tag"><img src="/experiments/normals.jpg"></a></li> 
+            <li><a href="/2010/10/23/html5-water-ripples-demo"><img src="/experiments/water.jpg" alt="Water"></a></li> 
+            <li><a href="/2010/8/18/javascript-galaxy-simulation"><img src="/experiments/galaxy.png" alt="galaxy"></a></li> 
+            <li><a href="/2010/4/17/box2d-2-flash-ported-javascript"><img src="/experiments/physics.jpg"></a> 
+            </li><li><a href="/2010/3/31/simulating-fire-using-javascript-and-canvas"><img src="/experiments/fire.jpg"></a></li> 
+            <li><a href="/2010/2/10/hand-drawn-lines-algorithm-javascript-canvas-html5"><img src="/experiments/handdrawn.jpg"></a></li> 
+            </ul> 
+        </div> 
+    </div>
+    <h1>Coffee Break</h1>
+    <canvas id="c"></canvas>
+    <canvas id="perfhub" width="256" height="256"></canvas>
+    <script src="break.js"></script>
 </body>
 </html>
