@@ -32,7 +32,10 @@ make_level = (height) ->
                 y = row*(Brick.height+2)+Brick.height+80
                 switch row%3
                     when 0
-                        scene.bricks.push(new HardBrick(v2(x, y)))
+                        if row == 0 and col == ~~(cols/2)
+                            scene.bricks.push(new XtraBallBrick(v2(x, y)))
+                        else
+                            scene.bricks.push(new HardBrick(v2(x, y)))
                     when 1
                         scene.bricks.push(new Brick(v2(x, y)))
                     when 2
@@ -288,6 +291,7 @@ Brick.height = 30
 class HardBrick extends Brick
     image: 'brick_hard0'
     hits: 0
+    score: 500
     sound: 'ping'
 
     hit: (scene) ->
@@ -301,11 +305,18 @@ class TntBrick extends Brick
     image: 'brick_tnt'
     blastRadius: 2*Brick.width
     sound: 'explosion'
+    score: 200
     hit: (scene) ->
         @destroyed = true
         for brick in scene.bricks
             if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
                 brick.hit(scene)
+
+class XtraBallBrick extends Brick
+    image: 'brick_xtraball'
+    hit: (scene) ->
+        @destroyed = true
+        scene.balls.push(new Ball(@shape.center.copy(), v2(0, -100)))
 
 
 class Paddle
@@ -366,9 +377,9 @@ class Game
             level: 0
             gameover: false
             score: 0
-            balls: 3
+            ballsLeft: 3
             bricks: []
-            ball: new Ball(v2(0, 0), v2(0, 0))
+            balls: [new Ball(v2(0, 0), v2(0, 0))]
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
         @particles = new ParticleSystem(100)
         @nextLevel()
@@ -377,7 +388,7 @@ class Game
         @input = new InputHandler(@canvas)
 
     nextLevel: ->
-        @scene.balls += 1
+        @scene.ballsLeft += 1
         @scene.bricks = []
         if @scene.level < LEVELS.length
             LEVELS[@scene.level++](@scene)
@@ -385,9 +396,18 @@ class Game
             LEVELS[LEVELS.length-1](@scene)
         @newBall()
 
-    newBall: ->
-        if @scene.balls--
-            ball = @scene.ball
+    newBall: (ball) ->
+        if not ball
+            @scene.balls = [ball = @scene.balls[0]]
+        if @scene.balls.length > 1
+            balls = []
+            for other_ball in @scene.balls
+                if other_ball != ball
+                    balls.push(other_ball)
+            @scene.balls = balls
+            return
+        if @scene.ballsLeft--
+            ball = @scene.balls[0]
             x = Math.max(Math.min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
             ball.shape.center.set(x, HEIGHT/3*2)
             ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(200)
@@ -407,10 +427,10 @@ class Game
 
     physics: (t) ->
 
-        ball = @scene.ball
 
         @paddlePhysics(t)
-        @ballPhysics(t, ball)
+        for ball in @scene.balls
+            @ballPhysics(t, ball)
         @particles.tick(t)
         for brick in @scene.bricks
             if not brick.destroyed
@@ -425,7 +445,7 @@ class Game
             axis = 'x'
         if not (shape.radius <= new_position.y <= HEIGHT-shape.radius)
             if HEIGHT-shape.radius <= new_position.y
-                @newBall()
+                @newBall(ball)
                 return
             if axis is 'x'
                 axis = 'xy'
@@ -463,40 +483,45 @@ class Game
  
 
     paddlePhysics: (t) ->
-        ball = @scene.ball
-        shape = ball.shape
         @scene.paddle.target = @input.target
         @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.2
         @scene.paddle.velocity += @scene.paddle.acceleration
         @scene.paddle.velocity *= 0.7
         @scene.paddle.shape.center.x += @scene.paddle.velocity
         @scene.paddle.shape.recalc()
-        if rect_circle_collision(@scene.paddle.shape, shape, shape.center)
-            # try to push ball
-            shape.center.x += @scene.paddle.velocity
-            # but not over the edge
-            if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
-                shape.center.x -= @scene.paddle.velocity
-                @scene.paddle.shape.center.x -= @scene.paddle.velocity
-                @scene.paddle.shape.recalc()
-
-
+        for ball in @scene.balls
+            shape = ball.shape
+            if rect_circle_collision(@scene.paddle.shape, shape, shape.center)
+                # try to push ball
+                shape.center.x += @scene.paddle.velocity
+                # but not over the edge
+                if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
+                    shape.center.x -= @scene.paddle.velocity
+                    @scene.paddle.shape.center.x -= @scene.paddle.velocity
+                    @scene.paddle.shape.recalc()
+                break
 
 
     render: ->
         if not SLOW
+            # motion blur
             @ctx.globalAlpha = 0.5
         @ctx.drawImage(resources['background'], 0, 0)
         if not SLOW
             @ctx.globalAlpha = 1.0
+
         @particles.draw(@ctx)
+
         @scene.paddle.draw(@ctx)
+
         for brick in @scene.bricks
             if not brick.destroyed
                 brick.draw(@ctx)
-        @scene.ball.draw(@ctx)
 
-
+        for ball in @scene.balls
+            ball.draw(@ctx)
+    
+        # draw hud
         if not SLOW
             @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
         else
@@ -507,7 +532,7 @@ class Game
         @ctx.fillText(@scene.score, WIDTH/2, -5)
         @ctx.font = '16px geo'
         if not @gameover
-            @ctx.fillText("#{@scene.balls} balls left", WIDTH/2, 40)
+            @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 40)
         else
             @ctx.fillStyle = 'red'
             @ctx.fillText("GAME OVER", WIDTH/2, 60)
@@ -523,8 +548,9 @@ class Loader
         @load(resources)
 
     _success: (name, data) ->
-        @pending--
-        @resources[name] = data
+        if not @resources[name]?
+            @pending--
+            @resources[name] = data
 
     _error: (name, error) ->
         @failed++
@@ -559,6 +585,7 @@ class Loader
             audio.volume = 1.0
             @_success(name, audio)
         audio.addEventListener('canplaythrough', canplaythough, false)
+        audio.addEventListener('ended', canplaythough, false)
         audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
         if ((src.slice(-4) == '.ogg' || src.slice(-4) == '.oga') &&
                 audio.canPlayType('audio/ogg; codecs="vorbis"') != 'probably' ||
@@ -568,9 +595,9 @@ class Loader
         audio.src = src
         # get all the browsers to preload the audio file
         # what a mess
-        audio.load()
         play = =>
             audio.play()
+            console.log('playing', audio)
             if audio.paused
                 # mobile safari doesn't allow us to control media elements
                 # so no audio :(
@@ -579,7 +606,7 @@ class Loader
                 @_error(name, 'audio not play()able')
             else
                 audio.volume = 0
-        setTimeout(play, 10)
+        setTimeout(play, 10*@pending)
 
 
 main = ->
@@ -634,13 +661,11 @@ start_game = (canvas) ->
 
 window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
-document.body.onload = ->
-    console.log('onload')
-    applicationCache.oncached = applicationCache.onnoupdate = ->
-        console.log('cached')
-        main()
+applicationCache.oncached = applicationCache.onnoupdate = ->
+    console.log('cached')
+    main()
 
-    applicationCache.onupdateready = ->
-        applicationCache.swapCache()
-        console.log('cache swaped')
-        main()
+applicationCache.onupdateready = ->
+    applicationCache.swapCache()
+    console.log('cache swaped')
+    main()
