@@ -19,6 +19,7 @@ RESOURCES =
     pong: 'sfx/pong.ogg'
     ping: 'sfx/ping.ogg'
     explosion: 'sfx/explosion.ogg'
+    multiball: 'sfx/multiball.ogg'
 INTERVAL = false
 
 LEVELS = []
@@ -316,6 +317,7 @@ class XtraBallBrick extends Brick
     image: 'brick_xtraball'
     hit: (scene) ->
         @destroyed = true
+        audioPlayer.play('multiball')
         scene.balls.push(new Ball(@shape.center.copy(), v2(0, -100)))
 
 
