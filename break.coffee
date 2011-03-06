@@ -529,13 +529,6 @@ class Game
         if not SLOW
             @ctx.globalAlpha = 1.0
 
-        sprites = []
-        for sprite in @scene.sprites
-            sprite.draw(@ctx)
-            if sprite.frame != 0
-                sprites.push(sprite)
-        @scene.sprites = sprites
-
         @particles.draw(@ctx)
 
         @scene.paddle.draw(@ctx)
@@ -546,7 +539,14 @@ class Game
 
         for ball in @scene.balls
             ball.draw(@ctx)
-    
+
+        sprites = []
+        for sprite in @scene.sprites
+            sprite.draw(@ctx)
+            if sprite.frame != 0
+                sprites.push(sprite)
+        @scene.sprites = sprites
+
         # draw hud
         if not SLOW
             @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
