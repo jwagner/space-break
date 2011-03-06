@@ -231,11 +231,11 @@ class Brick
         @destroyed = false
 
     draw: (ctx) ->
-        ctx.drawImage(resources['brick'], @shape.left-5, @shape.top-5)
+        ctx.drawImage(resources['brick'], @shape.left, @shape.top)
 
 
-Brick.width = 40
-Brick.height = 20
+Brick.width = 80
+Brick.height = 30
 
 class Paddle
     constructor: (@position) ->
@@ -308,12 +308,12 @@ class Game
     nextLevel: ->
         @scene.balls += 2
         @scene.bricks = []
-        cols = Math.floor(WIDTH/(Brick.width+10))
-        rows = Math.floor((HEIGHT-100)*0.6/(Brick.height+10))
+        cols = Math.floor(WIDTH/(Brick.width))-1
+        rows = Math.floor((HEIGHT-100)*0.4/(Brick.height+10))
         for row in [0...rows]
             for col in [0...cols]
-                x = col*(Brick.width+10)+Brick.width+(row&1)*20
-                y = row*(Brick.height+10)+Brick.height+80
+                x = col*(Brick.width)+Brick.width
+                y = row*(Brick.height+2)+Brick.height+80
                 @scene.bricks.push(new Brick(v2(x, y)))
         @newBall()
 
@@ -333,7 +333,7 @@ class Game
             @perfhub.tick('physics')
             @render()
             @perfhub.tick('render')
-            #@perfhub.draw()
+            @perfhub.draw()
             @perfhub.tick('perfhub')
             @perfhub.start()
 
@@ -342,21 +342,7 @@ class Game
         ball = @scene.ball
         shape = ball.shape
 
-        @scene.paddle.target = @input.target
-        @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.2
-        @scene.paddle.velocity += @scene.paddle.acceleration
-        @scene.paddle.velocity *= 0.7
-        @scene.paddle.shape.center.x += @scene.paddle.velocity
-        @scene.paddle.shape.recalc()
-        if rect_circle_collision(@scene.paddle.shape, shape, shape.center)
-            # try to push ball
-            shape.center.x += @scene.paddle.velocity
-            # but not over the edge
-            if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
-                shape.center.x -= @scene.paddle.velocity
-                @scene.paddle.shape.center.x -= @scene.paddle.velocity
-                @scene.paddle.shape.recalc()
-
+        @paddlePhysics(t)
 
         new_position = ball.position.add(ball.velocity.muls(t))
         if not (shape.radius <= new_position.x <= WIDTH-shape.radius)
@@ -392,7 +378,7 @@ class Game
                 ball.velocity.x *= 0.8
             # speed up ball after every bounce with an upper limit of
             # 400 px/s
-            ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag()*1.01, 400))
+            ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag()*1.01, 500))
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         else
             ball.position.iadd(ball.velocity.muls(t))
@@ -401,6 +387,26 @@ class Game
             if not brick.destroyed
                 return
         @nextLevel()
+
+    paddlePhysics: (t) ->
+        ball = @scene.ball
+        shape = ball.shape
+        @scene.paddle.target = @input.target
+        @scene.paddle.acceleration = (@scene.paddle.target - @scene.paddle.shape.center.x)*0.2
+        @scene.paddle.velocity += @scene.paddle.acceleration
+        @scene.paddle.velocity *= 0.7
+        @scene.paddle.shape.center.x += @scene.paddle.velocity
+        @scene.paddle.shape.recalc()
+        if rect_circle_collision(@scene.paddle.shape, shape, shape.center)
+            # try to push ball
+            shape.center.x += @scene.paddle.velocity
+            # but not over the edge
+            if not (shape.radius <= shape.center.x <= WIDTH-shape.radius)
+                shape.center.x -= @scene.paddle.velocity
+                @scene.paddle.shape.center.x -= @scene.paddle.velocity
+                @scene.paddle.shape.recalc()
+
+
 
 
     render: ->

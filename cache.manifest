@@ -2,6 +2,7 @@ CACHE MANIFEST
 #r8
 sfx/pong.ogg
 sfx/pong.mp3
+gfx/background0.jpg
 NETWORK:
 /*
 *
