@@ -408,11 +408,18 @@ class Game
     physics: (t) ->
 
         ball = @scene.ball
-        shape = ball.shape
-        sound = 'pong'
 
         @paddlePhysics(t)
+        @ballPhysics(t, ball)
+        @particles.tick(t)
+        for brick in @scene.bricks
+            if not brick.destroyed
+                return
+        @nextLevel()
 
+    ballPhysics: (t, ball) ->
+        sound = 'pong'
+        shape = ball.shape
         new_position = ball.position.add(ball.velocity.muls(t))
         if not (shape.radius <= new_position.x <= WIDTH-shape.radius)
             axis = 'x'
@@ -453,11 +460,7 @@ class Game
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         else
             ball.position.iadd(ball.velocity.muls(t))
-        @particles.tick(t)
-        for brick in @scene.bricks
-            if not brick.destroyed
-                return
-        @nextLevel()
+ 
 
     paddlePhysics: (t) ->
         ball = @scene.ball
@@ -551,6 +554,7 @@ class Loader
         audio.preload = 'auto'
         audio.autobuffer = true
         canplaythough = =>
+            console.log('can play')
             audio.pause()
             audio.volume = 1.0
             @_success(name, audio)
@@ -562,15 +566,20 @@ class Loader
             console.log('using mp3')
             src = src.slice(0, src.length-3) + 'mp3'
         audio.src = src
-        # gets all the browsers to preload the audio file
+        # get all the browsers to preload the audio file
+        # what a mess
         audio.load()
-        audio.play()
-        if audio.paused
-            # mobile safari doesn't allow us to control media elements
-            # so no audio :(
-            @audio = false
-            window.setTimeout((=> @_error(name, 'audio not play()able')), 1)
-        audio.volume = 0
+        play = =>
+            audio.play()
+            if audio.paused
+                # mobile safari doesn't allow us to control media elements
+                # so no audio :(
+                @audio = false
+                console.log('audio paused after play')
+                @_error(name, 'audio not play()able')
+            else
+                audio.volume = 0
+        setTimeout(play, 10)
 
 
 main = ->
@@ -625,10 +634,13 @@ start_game = (canvas) ->
 
 window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
-applicationCache.oncached = applicationCache.onnoupdate = ->
-    main()
+document.body.onload = ->
+    console.log('onload')
+    applicationCache.oncached = applicationCache.onnoupdate = ->
+        console.log('cached')
+        main()
 
-applicationCache.onupdateready = ->
-    applicationCache.swapCache()
-    console.log('cache swaped')
-    main()
+    applicationCache.onupdateready = ->
+        applicationCache.swapCache()
+        console.log('cache swaped')
+        main()
