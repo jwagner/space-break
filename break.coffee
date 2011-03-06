@@ -17,8 +17,6 @@ INTERVAL = false
 LEVELS = []
 make_level = (height) ->
     (scene) ->
-        scene.balls += 1
-        scene.bricks = []
         cols = Math.floor(WIDTH/(Brick.width))-1
         rows = Math.floor((HEIGHT-100)*height/(Brick.height+10))
         for row in [0...rows]
@@ -330,6 +328,8 @@ class Game
         @input = new InputHandler(@canvas)
 
     nextLevel: ->
+        @scene.balls += 1
+        @scene.bricks = []
         if @scene.level < LEVELS.length
             LEVELS[@scene.level++](@scene)
         else
