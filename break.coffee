@@ -14,6 +14,24 @@ RESOURCES =
     pong: 'sfx/pong.ogg'
 INTERVAL = false
 
+LEVELS = []
+make_level = (height) ->
+    (scene) ->
+        scene.balls += 1
+        scene.bricks = []
+        cols = Math.floor(WIDTH/(Brick.width))-1
+        rows = Math.floor((HEIGHT-100)*height/(Brick.height+10))
+        for row in [0...rows]
+            for col in [0...cols]
+                x = col*(Brick.width)+Brick.width
+                y = row*(Brick.height+2)+Brick.height+80
+                scene.bricks.push(new Brick(v2(x, y)))
+ 
+LEVELS.push make_level(0.4)
+ 
+LEVELS.push make_level(0.5)
+ 
+
 resources = {}
 
 class JSPerfHub
@@ -32,6 +50,10 @@ class JSPerfHub
         @bucketSize = @canvas.width/@sampleWidth
         @ctx.font = '12px geo'
         @fontHeight = 16
+
+        @visible = false
+        @canvas.onclick = =>
+            @visible = not @visible
 
      start: ->
         @sample = (@sample+1)%@bucketSize
@@ -54,6 +76,8 @@ class JSPerfHub
         bucket.average += td/@bucketSize
 
     draw: ->
+        if not @visible
+            return
         total = 0
         textSpacing = 4
         textHeight = 2*textSpacing+@fontHeight*(@buckets.keys.length+2)
@@ -306,15 +330,10 @@ class Game
         @input = new InputHandler(@canvas)
 
     nextLevel: ->
-        @scene.balls += 2
-        @scene.bricks = []
-        cols = Math.floor(WIDTH/(Brick.width))-1
-        rows = Math.floor((HEIGHT-100)*0.4/(Brick.height+10))
-        for row in [0...rows]
-            for col in [0...cols]
-                x = col*(Brick.width)+Brick.width
-                y = row*(Brick.height+2)+Brick.height+80
-                @scene.bricks.push(new Brick(v2(x, y)))
+        if @scene.level < LEVELS.length
+            LEVELS[@scene.level++](@scene)
+        else
+            LEVELS[LEVELS.length-1](@scene)
         @newBall()
 
     newBall: ->
@@ -537,7 +556,9 @@ start_game = (canvas) ->
         if not game.tick(td*0.001)
             if INTERVAL
                 clearInterval(INTERVAL)
-            canvas.onclick = ->
+            canvas.onclick = canvas.ontouchstart = ->
+                canvas.onclick = ->
+                canvas.ontouchstart = ->
                 start_game(canvas)
             return false
         return true
