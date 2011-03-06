@@ -1,6 +1,7 @@
 WIDTH = 640
 HEIGHT = 480
 SLOW = false
+INITIAL_VELOCITY = 200
 # ugly
 if(navigator.userAgent.match(/iPad/i))
     SLOW = true
@@ -14,6 +15,7 @@ RESOURCES =
     brick_hard1: 'gfx/brick_hard1.png'
     brick_hard2: 'gfx/brick_hard2.png'
     brick_xtraball: 'gfx/brick_xtraball.png'
+    brick_explosion: 'gfx/explosion.png'
     ball: 'gfx/ball.png'
     paddle: 'gfx/paddle.png'
     pong: 'sfx/pong.ogg'
@@ -309,6 +311,7 @@ class TntBrick extends Brick
     score: 200
     hit: (scene) ->
         @destroyed = true
+        scene.sprites.push(new Animation(resources['brick_explosion'], 128, @shape.center))
         for brick in scene.bricks
             if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
                 brick.hit(scene)
@@ -318,7 +321,7 @@ class XtraBallBrick extends Brick
     hit: (scene) ->
         @destroyed = true
         audioPlayer.play('multiball')
-        scene.balls.push(new Ball(@shape.center.copy(), v2(0, -100)))
+        scene.balls.push(new Ball(@shape.center.copy(), v2(0, -INITIAL_VELOCITY)))
 
 
 class Paddle
@@ -370,24 +373,38 @@ class ParticleSystem
                 ctx.fillRect(particle.position.x, particle.position.y, 1, 1)
         return
 
+class Animation
+    constructor: (@img, @width, @center) ->
+        @frame = 0
+        @frames = @img.width/@width
 
+    draw: (ctx) ->
+        x = @center.x - @width*0.5
+        y = @center.y - @img.height*0.5
+        frame = ~~@frame
+        ctx.drawImage(@img, frame*@width, 0, @width, @img.height, x, y, @width, @img.height)
+        @frame = (@frame+0.5)%@frames
 
 class Game
     constructor: (@canvas) ->
         @ctx = @canvas.getContext '2d'
+        @input = new InputHandler(@canvas)
+        @reset()
+
+    reset: ->
         @scene =
             level: 0
             gameover: false
             score: 0
             ballsLeft: 3
             bricks: []
+            sprites:  []
             balls: [new Ball(v2(0, 0), v2(0, 0))]
             paddle: new Paddle(v2(WIDTH/2, HEIGHT-50))
         @particles = new ParticleSystem(100)
         @nextLevel()
         @perfhub = new JSPerfHub()
         @perfhub.start()
-        @input = new InputHandler(@canvas)
 
     nextLevel: ->
         @scene.ballsLeft += 1
@@ -412,7 +429,7 @@ class Game
             ball = @scene.balls[0]
             x = Math.max(Math.min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
             ball.shape.center.set(x, HEIGHT/3*2)
-            ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(200)
+            ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(INITIAL_VELOCITY)
         else
             @gameover = true
 
@@ -511,6 +528,13 @@ class Game
         @ctx.drawImage(resources['background'], 0, 0)
         if not SLOW
             @ctx.globalAlpha = 1.0
+
+        sprites = []
+        for sprite in @scene.sprites
+            sprite.draw(@ctx)
+            if sprite.frame != 0
+                sprites.push(sprite)
+        @scene.sprites = sprites
 
         @particles.draw(@ctx)
 
