@@ -9,9 +9,16 @@ AUDIO = true
 RESOURCES =
     background: 'gfx/background0.jpg'
     brick: 'gfx/brick.png'
+    brick_tnt: 'gfx/brick_tnt.png'
+    brick_hard0: 'gfx/brick_hard0.png'
+    brick_hard1: 'gfx/brick_hard1.png'
+    brick_hard2: 'gfx/brick_hard2.png'
+    brick_xtraball: 'gfx/brick_xtraball.png'
     ball: 'gfx/ball.png'
     paddle: 'gfx/paddle.png'
     pong: 'sfx/pong.ogg'
+    ping: 'sfx/ping.ogg'
+    explosion: 'sfx/explosion.ogg'
 INTERVAL = false
 
 LEVELS = []
@@ -23,7 +30,16 @@ make_level = (height) ->
             for col in [0...cols]
                 x = col*(Brick.width)+Brick.width
                 y = row*(Brick.height+2)+Brick.height+80
-                scene.bricks.push(new Brick(v2(x, y)))
+                switch row%3
+                    when 0
+                        scene.bricks.push(new HardBrick(v2(x, y)))
+                    when 1
+                        scene.bricks.push(new Brick(v2(x, y)))
+                    when 2
+                        if col%3 == 0
+                            scene.bricks.push(new TntBrick(v2(x, y)))
+                        else
+                            scene.bricks.push(new HardBrick(v2(x, y)))
  
 LEVELS.push make_level(0.4)
  
@@ -140,6 +156,9 @@ class V2
     add: (v) ->
         new V2(@x+v.x, @y+v.y)
 
+    sub: (v) ->
+        new V2(@x-v.x, @y-v.y)
+
     mul: (v) ->
         new V2(@x*v.x, @y*v.y)
  
@@ -248,16 +267,46 @@ class Ball
 
 
 class Brick
+    image: 'brick'
+    sound: 'pong'
+    score: 100
+
     constructor: (@position) ->
         @shape = new Rect(@position, Brick.width, Brick.height)
         @destroyed = false
 
     draw: (ctx) ->
-        ctx.drawImage(resources['brick'], @shape.left, @shape.top)
+        ctx.drawImage(resources[@image], @shape.left, @shape.top)
+
+    hit: (scene) ->
+        @destroyed = true
 
 
 Brick.width = 80
 Brick.height = 30
+
+class HardBrick extends Brick
+    image: 'brick_hard0'
+    hits: 0
+    sound: 'ping'
+
+    hit: (scene) ->
+        @hits++
+        if @hits > 2
+            @destroyed = true
+        else
+            @image = "brick_hard#{@hits}"
+
+class TntBrick extends Brick
+    image: 'brick_tnt'
+    blastRadius: 2*Brick.width
+    sound: 'explosion'
+    hit: (scene) ->
+        @destroyed = true
+        for brick in scene.bricks
+            if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
+                brick.hit(scene)
+
 
 class Paddle
     constructor: (@position) ->
@@ -360,6 +409,7 @@ class Game
 
         ball = @scene.ball
         shape = ball.shape
+        sound = 'pong'
 
         @paddlePhysics(t)
 
@@ -377,8 +427,10 @@ class Game
         if not axis and not ((axis = rect_circle_collision(@scene.paddle.shape, shape, new_position)) and paddle = true)
             for brick in @scene.bricks
                 if not brick.destroyed and axis = rect_circle_collision(brick.shape, shape, new_position)
-                    brick.destroyed = true
-                    @scene.score += 100
+                    brick.hit(@scene)
+                    sound = brick.sound
+                    if brick.destroyed
+                        @scene.score += brick.score
                     break
 
         if axis is 'x'
@@ -391,7 +443,7 @@ class Game
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
         if axis
-            audioPlayer.play('pong')
+            audioPlayer.play(sound)
             # we don't want the ball to move to flat because it's annoying
             if Math.abs(ball.velocity.y*2) < Math.abs(ball.velocity.x)
                 ball.velocity.x *= 0.8

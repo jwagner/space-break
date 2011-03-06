@@ -1,7 +1,11 @@
 CACHE MANIFEST
-#r8
+#r10
 sfx/pong.ogg
 sfx/pong.mp3
+sfx/ping.ogg
+sfx/pong.mp3
+sfx/explosion.ogg
+sfx/explosion.mp3
 gfx/background0.jpg
 NETWORK:
 /*
