@@ -1,4 +1,14 @@
-all: break.min.js sfx
+all: break.min.js sfx cache.manifest
+
+cache.manifest: gfx/* sfx/*
+	echo "CACHE MANIFEST" > cache.manifest
+	echo "#" `date` >> cache.manifest
+	find sfx/ -iname *.ogg >> cache.manifest
+	find sfx/ -iname *.mp3 >> cache.manifest
+	find gfx/ -iname *.png >> cache.manifest
+	echo "NETWORK:" >> cache.manifest
+	echo "/*" >> cache.manifest
+	echo "*" >> cache.manifest
 
 sfx: csound/*
 	mkdir -p sfx
@@ -15,6 +25,7 @@ sfx: csound/*
 clean:
 	rm -rf sfx/
 	rm break.min.js
+	rm cache.manifest
 
 break.min.js: break.js
 	java -jar compiler.jar --js break.js --compilation_level ADVANCED_OPTIMIZATIONS  --js_output_file break.min.js
