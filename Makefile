@@ -10,7 +10,7 @@ cache.manifest: gfx/* sfx/*
 	echo "/*" >> cache.manifest
 	echo "*" >> cache.manifest
 
-sfx: csound/*
+sfx/*: csound/*
 	mkdir -p sfx
 	csound csound/pong.csd --output=sfx/pong.wav
 	csound csound/ping.csd --output=sfx/ping.wav
@@ -28,7 +28,7 @@ clean:
 	rm cache.manifest
 
 break.min.js: break.js
-	java -jar compiler.jar --js break.js --compilation_level ADVANCED_OPTIMIZATIONS  --js_output_file break.min.js
+	java -jar compiler.jar --formatting=pretty_print --js break.js --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file break.min.js
 
 monitor:
 	coffee -wc *.coffee

@@ -359,6 +359,7 @@ class XtraBallBrick extends Brick
 
 
 class Paddle
+    image: 'paddle'
     constructor: (@position) ->
         @shape = new Rect(@position, 100, 20)
         @velocity = 0
@@ -366,7 +367,7 @@ class Paddle
         @target = @position.x
 
     draw: (ctx) ->
-        ctx.drawImage(resources['paddle'], @shape.left-20, @shape.top-20)
+        ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
 
 
 class Particle
@@ -729,7 +730,7 @@ start_game = (canvas) ->
         INTERVAL = setInterval(callback, 1000/30)
     game.render()
 
-window.requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
+requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
 applicationCache.oncached = applicationCache.onnoupdate = ->
     console.log('cached')
