@@ -19,6 +19,7 @@ RESOURCES =
     background: 'gfx/background0.jpg'
     brick: 'gfx/brick.png'
     brick_tnt: 'gfx/brick_tnt.png'
+    brick_nuke: 'gfx/brick_nuke.png'
     brick_hard0: 'gfx/brick_hard0.png'
     brick_hard1: 'gfx/brick_hard1.png'
     brick_hard2: 'gfx/brick_hard2.png'
@@ -29,6 +30,7 @@ RESOURCES =
     pong: 'sfx/pong.ogg'
     ping: 'sfx/ping.ogg'
     explosion: 'sfx/explosion.ogg'
+    nuke: 'sfx/nuke.ogg'
     multiball: 'sfx/multiball.ogg'
 INTERVAL = false
 
@@ -54,6 +56,7 @@ make_level = (height) ->
                             scene.bricks.push(new TntBrick(v2(x, y)))
                         else
                             scene.bricks.push(new HardBrick(v2(x, y)))
+        scene.bricks.push(new NukeBrick(v2(WIDTH-40, 20)))
  
 LEVELS.push make_level(0.4)
  
@@ -340,7 +343,7 @@ class HardBrick extends Brick
 
 class TntBrick extends Brick
     image: 'brick_tnt'
-    blastRadius: 2*Brick.width
+    blastRadius: Brick.width
     sound: 'explosion'
     score: 200
     hit: (scene) ->
@@ -348,6 +351,17 @@ class TntBrick extends Brick
         scene.sprites.push(new Animation(resources['brick_explosion'], 128, @shape.center))
         for brick in scene.bricks
             if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
+                brick.hit(scene)
+
+class NukeBrick extends Brick
+    image: 'brick_nuke'
+    sound: 'nuke'
+    score: 1000
+    hit: (scene) ->
+        nukeEffect(game, @shape.center)
+        super(scene)
+        for brick in scene.bricks
+            while not brick.destroyed
                 brick.hit(scene)
 
 class XtraBallBrick extends Brick
@@ -449,6 +463,7 @@ class Game
         else
             LEVELS[LEVELS.length-1](@scene)
         @scene.score.earn()
+        @scene.sprites = []
         @newBall()
 
     newBall: (ball) ->
@@ -729,6 +744,76 @@ start_game = (canvas) ->
     else
         INTERVAL = setInterval(callback, 1000/30)
     game.render()
+
+canvas = (w, h) ->
+    c = document.createElement('canvas')
+    c.width = w
+    c.height = h
+    return c
+
+# copy paste from jswars - not pretty
+nukeEffect = (game, position) ->
+    cx = position.x
+    cy = position.y
+    ctx = game.ctx
+    width = WIDTH
+    height = HEIGHT
+    scale = 4
+    w = floor(width/scale)
+    h = floor(height/scale)
+    buffer = canvas(w, h)
+    #document.body.appendChild(buffer)
+    buffer_clear = canvas(width, height)
+    bctx = buffer.getContext('2d')
+    bctx_clear = buffer_clear.getContext('2d')
+    bctx_clear.drawImage(game.canvas, 0, 0)
+    bctx.drawImage(game.canvas, 0, 0, w, h)
+    ctx.drawImage(buffer, 0, 0, width, height)
+    maxi = width*height*4
+    bdata = ctx.getImageData(0, 0, width, height)
+    t = 0
+    oldtick = game.tick
+    amplitude = 100
+    period = Math.PI*2/200
+    v = -2
+    sdata = bctx.getImageData(0, 0, w, h)
+
+    game.tick = (td) ->
+        sqrt = Math.sqrt
+        sin = Math.sin
+        round = Math.round
+        sdatadata = sdata.data
+        bdatadata = bdata.data
+        abs = Math.abs
+        min = Math.min
+        max=Math.max
+        t += td
+        for x in [0..w]
+            for y in [0..h]
+                i = (y*w+x)*4
+                bx = x*scale
+                by_ = y*scale
+                xd = cx-bx
+                yd = cy-by_
+                d = sqrt(xd*xd+yd*yd)
+                o = sin(d*period+t*v)*(amplitude/(1+(d/100)*(d/100))/t)
+                bx = round(bx+o*(xd/d))
+                by_ = round(by_+o*(yd/d))
+                bi = (by_*width+bx)*4
+                if(bi > maxi || bi < 1)
+                    sdata[i+3] = 0
+                else
+                    sdatadata[i] = min(255, bdatadata[bi]*3.5)
+                    sdatadata[i+1] = min(255, bdatadata[bi+1]*1.5)
+                    sdatadata[i+2] = min(255, bdatadata[bi+2]*1.0)
+                    sdatadata[i+3] = min(255, 15*abs(o))
+        
+        bctx.putImageData(sdata, 0, 0)
+        ctx.drawImage(buffer_clear, 0, 0)
+        ctx.drawImage(buffer, 0, 0, width, height)
+        if t > 1.5
+            game.tick = oldtick
+        return true
 
 requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 

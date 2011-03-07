@@ -15,10 +15,12 @@ sfx/*: csound/*
 	csound csound/pong.csd --output=sfx/pong.wav
 	csound csound/ping.csd --output=sfx/ping.wav
 	csound csound/explosion.csd --output=sfx/explosion.wav
+	csound csound/nuke.csd --output=sfx/nuke.wav
 	oggenc sfx/*.wav
 	oggenc wav/multiball.wav -o sfx/multiball.ogg
 	lame sfx/pong.wav sfx/pong.mp3
 	lame sfx/ping.wav sfx/ping.mp3
+	lame sfx/nuke.wav sfx/nuke.mp3
 	lame sfx/explosion.wav sfx/explosion.mp3
 	lame wav/multiball.wav sfx/multiball.mp3
 
