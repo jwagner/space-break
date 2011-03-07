@@ -17,7 +17,9 @@ if(navigator.userAgent.match(/iPad/i))
 AUDIO = true
 RESOURCES =
     background: 'gfx/background0.jpg'
-    brick: 'gfx/brick.png'
+    brick_orange: 'gfx/brick_orange.png'
+    brick_green: 'gfx/brick_green.png'
+    brick_blue: 'gfx/brick_blue.png'
     brick_tnt: 'gfx/brick_tnt.png'
     brick_nuke: 'gfx/brick_nuke.png'
     brick_hard0: 'gfx/brick_hard0.png'
@@ -35,6 +37,56 @@ RESOURCES =
 INTERVAL = false
 
 LEVELS = []
+LEVELS.push (scene) ->
+    positions = [
+        v2(150, 100)
+        v2(150, 130)
+        v2(150, 160)
+        v2(150, 190)
+        v2(150, 220)
+        v2(150, 250)
+
+        v2(230, 160)
+
+        v2(310, 100)
+        v2(310, 130)
+        v2(310, 160)
+        v2(310, 190)
+        v2(310, 220)
+        v2(310, 250)
+
+        v2(450, 160)
+        v2(450, 190)
+        v2(450, 220)
+        v2(450, 250)
+
+
+    ]
+    for position in positions
+        scene.bricks.push(new Brick(v2(position.x, position.y+50)))
+    scene.bricks.push(new TntBrick(v2(450, 100)))
+
+LEVELS.push (scene) ->
+    for row in [0...5]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            color = ['orange', 'green'][(row&1)^(col&1)]
+            scene.bricks.push(new ColorBrick(v2(x, y), color))
+
+LEVELS = []
+LEVELS.push (scene) ->
+    for row in [0...5]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            color = ['orange', 'blue'][(row&1)^(col&1)]
+            if row == 1 and (col)%3 == 0
+                scene.bricks.push(new TntBrick(v2(x, y)))
+            else
+                scene.bricks.push(new ColorBrick(v2(x, y), color))
+
+
 make_level = (height) ->
     (scene) ->
         cols = floor(WIDTH/(Brick.width))-1
@@ -56,11 +108,22 @@ make_level = (height) ->
                             scene.bricks.push(new TntBrick(v2(x, y)))
                         else
                             scene.bricks.push(new HardBrick(v2(x, y)))
-        scene.bricks.push(new NukeBrick(v2(WIDTH-40, 20)))
  
 LEVELS.push make_level(0.4)
- 
 LEVELS.push make_level(0.5)
+LEVELS.push make_level(0.7)
+LEVELS = []
+LEVELS.push (scene) ->
+    for row in [0...5]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            if row == 0
+                scene.bricks.push(new XtraBallBrick(v2(x, y)))
+            else
+                scene.bricks.push(new HardBrick(v2(x, y)))
+
+
  
 
 resources = {}
@@ -306,9 +369,8 @@ class ScoreTracker
         @pending = 0
 
 
-
 class Brick
-    image: 'brick'
+    image: 'brick_orange'
     sound: 'pong'
     score: 100
 
@@ -323,9 +385,15 @@ class Brick
         @destroyed = true
         scene.score.add(@score)
 
-
 Brick.width = 80
 Brick.height = 30
+
+
+class ColorBrick extends Brick
+    constructor: (position, color) ->
+        super(position)
+        @image = "brick_#{color}"
+
 
 class HardBrick extends Brick
     image: 'brick_hard0'
@@ -758,7 +826,10 @@ nukeEffect = (game, position) ->
     ctx = game.ctx
     width = WIDTH
     height = HEIGHT
-    scale = 4
+    if SLOW
+        scale = 8
+    else
+        scale = 4
     w = floor(width/scale)
     h = floor(height/scale)
     buffer = canvas(w, h)
