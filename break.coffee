@@ -1,3 +1,11 @@
+round = Math.round
+floor = Math.floor
+random = Math.random
+sqrt = Math.sqrt
+min = Math.min
+max = Math.max
+abs = Math.abs
+
 WIDTH = 640
 HEIGHT = 480
 SLOW = false
@@ -27,8 +35,8 @@ INTERVAL = false
 LEVELS = []
 make_level = (height) ->
     (scene) ->
-        cols = Math.floor(WIDTH/(Brick.width))-1
-        rows = Math.floor((HEIGHT-100)*height/(Brick.height+10))
+        cols = floor(WIDTH/(Brick.width))-1
+        rows = floor((HEIGHT-100)*height/(Brick.height+10))
         for row in [0...rows]
             for col in [0...cols]
                 x = col*(Brick.width)+Brick.width
@@ -123,10 +131,10 @@ class JSPerfHub
             y -= height
             @ctx.fillStyle = color
             @ctx.fillRect(x, y, @sampleWidth, height)
-            @ctx.fillText("#{name}: #{Math.round(bucket.average*100)/100} ms", textSpacing, textSpacing+@fontHeight*i)
+            @ctx.fillText("#{name}: #{round(bucket.average*100)/100} ms", textSpacing, textSpacing+@fontHeight*i)
             total += bucket.average
         @ctx.fillStyle = 'white'
-        @ctx.fillText("total: #{Math.round(total*100)/100} ms / #{Math.round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
+        @ctx.fillText("total: #{round(total*100)/100} ms / #{round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
         @ctx.fillStyle = 'black'
         @ctx.fillRect(x, 0, @sampleWidth, y)
         return
@@ -180,7 +188,7 @@ class V2
         this.muls(1/s)
 
     mag: (s) ->
-        Math.sqrt(@x*@x+@y*@y)
+        sqrt(@x*@x+@y*@y)
 
     normalize: ->
         this.divs(this.mag())
@@ -196,7 +204,7 @@ class V2
 
 
 V2.random = ->
-    new V2(Math.random()-0.5, Math.random()-0.5).normalize()
+    new V2(random()-0.5, random()-0.5).normalize()
 v2 = (x, y) -> new V2(x, y)
 
 
@@ -259,6 +267,7 @@ rect_circle_collision = (rect, circle, center) ->
         else
             'xy'
 
+
 class Circle
     constructor: (@center, @radius) ->
 
@@ -270,6 +279,29 @@ class Ball
     draw: (ctx) ->
         img = resources['ball']
         ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
+
+
+class ScoreTracker
+    constructor: ->
+        @total = 0
+        @multiplier = 1
+        @pending = 0
+        @hits = 0
+
+    add: (n) ->
+        @pending += n
+        @hits += 1
+        @multiplier = 1+floor(sqrt(@hits))
+
+    earn: ->
+        @total += @pending*@multiplier
+        @reset()
+
+    reset: ->
+        @multiplier = 1
+        @hits = 0
+        @pending = 0
+
 
 
 class Brick
@@ -286,6 +318,7 @@ class Brick
 
     hit: (scene) ->
         @destroyed = true
+        scene.score.add(@score)
 
 
 Brick.width = 80
@@ -294,15 +327,16 @@ Brick.height = 30
 class HardBrick extends Brick
     image: 'brick_hard0'
     hits: 0
-    score: 500
+    score: 200
     sound: 'ping'
 
     hit: (scene) ->
         @hits++
         if @hits > 2
-            @destroyed = true
+            super(scene)
         else
             @image = "brick_hard#{@hits}"
+            scene.score.add(100)
 
 class TntBrick extends Brick
     image: 'brick_tnt'
@@ -310,7 +344,7 @@ class TntBrick extends Brick
     sound: 'explosion'
     score: 200
     hit: (scene) ->
-        @destroyed = true
+        super(scene)
         scene.sprites.push(new Animation(resources['brick_explosion'], 128, @shape.center))
         for brick in scene.bricks
             if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
@@ -319,7 +353,7 @@ class TntBrick extends Brick
 class XtraBallBrick extends Brick
     image: 'brick_xtraball'
     hit: (scene) ->
-        @destroyed = true
+        super(scene)
         audioPlayer.play('multiball')
         scene.balls.push(new Ball(@shape.center.copy(), v2(0, -INITIAL_VELOCITY)))
 
@@ -351,7 +385,7 @@ class ParticleSystem
         for i in [0..n]
             particle = @particles[@i]
             particle.position = location.copy()
-            particle.velocity = direction.normalize().mul(v2(0.5-Math.random(), 0.5-Math.random())).normalize().muls(velocity*Math.random())
+            particle.velocity = direction.normalize().mul(v2(0.5-random(), 0.5-random())).normalize().muls(velocity*random())
             particle.ttl = @t+ttl
             @i = (@i+1)%@particles.length
         return
@@ -368,7 +402,7 @@ class ParticleSystem
     draw: (ctx) ->
         for particle in @particles
             if particle.ttl > @t
-                alpha = Math.sqrt(particle.ttl - @t)
+                alpha = sqrt(particle.ttl - @t)
                 ctx.fillStyle = "rgba(255, 205, 80, #{alpha})"
                 ctx.fillRect(particle.position.x, particle.position.y, 1, 1)
         return
@@ -395,7 +429,7 @@ class Game
         @scene =
             level: 0
             gameover: false
-            score: 0
+            score: new ScoreTracker()
             ballsLeft: 3
             bricks: []
             sprites:  []
@@ -413,6 +447,7 @@ class Game
             LEVELS[@scene.level++](@scene)
         else
             LEVELS[LEVELS.length-1](@scene)
+        @scene.score.earn()
         @newBall()
 
     newBall: (ball) ->
@@ -425,11 +460,12 @@ class Game
                     balls.push(other_ball)
             @scene.balls = balls
             return
+        @scene.score.reset()
         if @scene.ballsLeft--
             ball = @scene.balls[0]
-            x = Math.max(Math.min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
+            x = max(min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
             ball.shape.center.set(x, HEIGHT/3*2)
-            ball.velocity = v2(Math.random()-0.5, Math.random()+1).normalize().muls(INITIAL_VELOCITY)
+            ball.velocity = v2(random()-0.5, random()+1).normalize().muls(INITIAL_VELOCITY)
         else
             @gameover = true
 
@@ -475,8 +511,6 @@ class Game
                 if not brick.destroyed and axis = rect_circle_collision(brick.shape, shape, new_position)
                     brick.hit(@scene)
                     sound = brick.sound
-                    if brick.destroyed
-                        @scene.score += brick.score
                     break
 
         if axis is 'x'
@@ -488,14 +522,16 @@ class Game
             ball.velocity.y *= -1
         if paddle
             ball.velocity.x += @scene.paddle.velocity*10
+            if @scene.balls.length == 1
+                @scene.score.earn()
         if axis
             audioPlayer.play(sound)
             # we don't want the ball to move to flat because it's annoying
-            if Math.abs(ball.velocity.y*2) < Math.abs(ball.velocity.x)
+            if abs(ball.velocity.y*2) < abs(ball.velocity.x)
                 ball.velocity.x *= 0.8
             # speed up ball after every bounce with an upper limit of
             # 400 px/s
-            ball.velocity = ball.velocity.normalize().muls(Math.min(ball.velocity.mag()*1.01, 500))
+            ball.velocity = ball.velocity.normalize().muls(min(ball.velocity.mag()*1.01, 500))
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         else
             ball.position.iadd(ball.velocity.muls(t))
@@ -554,14 +590,22 @@ class Game
             @ctx.fillStyle = 'white'
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
-        @ctx.font = '50px geo'
-        @ctx.fillText(@scene.score, WIDTH/2, -5)
+        @ctx.font = '60px geo'
+        @ctx.fillText(@scene.score.total, WIDTH/2, -5)
         @ctx.font = '16px geo'
-        if not @gameover
-            @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 40)
-        else
-            @ctx.fillStyle = 'red'
-            @ctx.fillText("GAME OVER", WIDTH/2, 60)
+        @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 50)
+
+        multiplier_colors = ['white', 'yellow', 'orange', 'red', 'green', 'magenta']
+        if @scene.score.pending
+            @ctx.font = '24px geo'
+            colorIndex = min(floor((@scene.score.multiplier-1)/2), multiplier_colors.length)
+            @ctx.fillStyle = multiplier_colors[colorIndex]
+            if @scene.score.multiplier > 1
+                text = "+ #{@scene.score.multiplier} x #{@scene.score.pending}"
+            else
+                text = "+ #{@scene.score.pending}"
+            @ctx.fillText(text, WIDTH/2, 70)
+
         return
 
 
