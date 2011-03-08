@@ -290,14 +290,15 @@ v2 = (x, y) -> new V2(x, y)
 class AudioPlayer
     constructor: ->
         @pool = {}
-        @maxPoolSize = 8
+        @maxPoolSize = 3
 
     play: (name) ->
         if not AUDIO
             return
         pool = @pool[name]
         if not pool
-            pool = @pool[name] = [resources[name]]
+            #pool = @pool[name] = [resources[name]]
+            pool = [resources[name].cloneNode(true)]
         for audio in pool
             if audio.readyState == 4 and audio.paused or audio.ended
                 if audio.currentTime == 0
@@ -308,11 +309,11 @@ class AudioPlayer
                     # hack for chrome/webkit
                     audio.currentTime = 0
                     audio.pause()
+        audio = audio.cloneNode(true)
+        console.log('clone')
+        #audio.currentTime = 0.0
+        audio.play()
         if pool.length < @maxPoolSize
-            audio = audio.cloneNode(true)
-            console.log('clone')
-            #audio.currentTime = 0.0
-            audio.play()
             pool.push(audio)
 
 audioPlayer = new AudioPlayer()
