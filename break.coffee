@@ -628,7 +628,7 @@ class Game
                     break
             # makes it easier to get the ball up between blocks
             if axis is 'xy'
-                axis = 'y'
+                axis = 'x'
 
 
         if axis is 'x'
