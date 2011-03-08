@@ -20,6 +20,7 @@ RESOURCES =
     brick_orange: 'gfx/brick_orange.png'
     brick_green: 'gfx/brick_green.png'
     brick_blue: 'gfx/brick_blue.png'
+    brick_immortal: 'gfx/brick_immortal.png'
     brick_tnt: 'gfx/brick_tnt.png'
     brick_nuke: 'gfx/brick_nuke.png'
     brick_hard0: 'gfx/brick_hard0.png'
@@ -31,12 +32,26 @@ RESOURCES =
     paddle: 'gfx/paddle.png'
     pong: 'sfx/pong.ogg'
     ping: 'sfx/ping.ogg'
+    thud: 'sfx/thud.ogg'
     explosion: 'sfx/explosion.ogg'
     nuke: 'sfx/nuke.ogg'
     multiball: 'sfx/multiball.ogg'
 INTERVAL = false
 
 LEVELS = []
+LEVELS.push (scene) ->
+    for row in [0...2]
+        for col in [0...7]
+            if col&1
+                continue
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            if row == 1
+                scene.bricks.push(new ImmortalBrick(v2(x, y)))
+            else
+                scene.bricks.push(new TntBrick(v2(x, y)))
+
+
 LEVELS.push (scene) ->
     positions = [
         v2(150, 100)
@@ -74,7 +89,6 @@ LEVELS.push (scene) ->
             color = ['orange', 'green'][(row&1)^(col&1)]
             scene.bricks.push(new ColorBrick(v2(x, y), color))
 
-LEVELS = []
 LEVELS.push (scene) ->
     for row in [0...5]
         for col in [0...7]
@@ -112,7 +126,6 @@ make_level = (height) ->
 LEVELS.push make_level(0.4)
 LEVELS.push make_level(0.5)
 LEVELS.push make_level(0.7)
-LEVELS = []
 LEVELS.push (scene) ->
     for row in [0...5]
         for col in [0...7]
@@ -388,6 +401,13 @@ class Brick
 Brick.width = 80
 Brick.height = 30
 
+class ImmortalBrick extends Brick
+    image: 'brick_immortal'
+    sound: 'thud'
+    hit: (scene, explosion) ->
+        if explosion
+            super(scene)
+
 
 class ColorBrick extends Brick
     constructor: (position, color) ->
@@ -418,8 +438,8 @@ class TntBrick extends Brick
         super(scene)
         scene.sprites.push(new Animation(resources['brick_explosion'], 128, @shape.center))
         for brick in scene.bricks
-            if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() < @blastRadius
-                brick.hit(scene)
+            if not brick.destroyed and brick.shape.center.sub(@shape.center).mag() <= @blastRadius
+                brick.hit(scene, true)
 
 class NukeBrick extends Brick
     image: 'brick_nuke'
@@ -430,7 +450,7 @@ class NukeBrick extends Brick
         super(scene)
         for brick in scene.bricks
             while not brick.destroyed
-                brick.hit(scene)
+                brick.hit(scene, true)
 
 class XtraBallBrick extends Brick
     image: 'brick_xtraball'
@@ -449,16 +469,17 @@ class Paddle
         @target = @position.x
 
     draw: (ctx) ->
-        #ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
+        ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
+        return
         sx = @shape.left-10
         sw = @shape.width*2-20
         sy = @shape.top+10
         sh = @shape.height*2-20
         ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left, @shape.top, @shape.width, @shape.height)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-        ctx.globalCompositeOperation = 'lighter'
-        ctx.fillRect(@shape.left, @shape.top, @shape.width, @shape.height)
-        ctx.globalCompositeOperation = 'source-over'
+        #ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+        #ctx.globalCompositeOperation = 'lighter'
+        #ctx.fillRect(@shape.left, @shape.top, @shape.width, @shape.height)
+        #ctx.globalCompositeOperation = 'source-over'
 
 
 class Particle
