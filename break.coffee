@@ -449,7 +449,16 @@ class Paddle
         @target = @position.x
 
     draw: (ctx) ->
-        ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
+        #ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
+        sx = @shape.left-10
+        sw = @shape.width*2-20
+        sy = @shape.top+10
+        sh = @shape.height*2-20
+        ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left, @shape.top, @shape.width, @shape.height)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+        ctx.globalCompositeOperation = 'lighter'
+        ctx.fillRect(@shape.left, @shape.top, @shape.width, @shape.height)
+        ctx.globalCompositeOperation = 'source-over'
 
 
 class Particle
@@ -596,6 +605,10 @@ class Game
                     brick.hit(@scene)
                     sound = brick.sound
                     break
+            # makes it easier to get the ball up between blocks
+            if axis is 'xy'
+                axis = 'y'
+
 
         if axis is 'x'
             ball.velocity.x *= -1
