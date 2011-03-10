@@ -3,19 +3,103 @@ body {
     width: 100%;
     height: 100%;
     background: black;
-    font-family: georgia, sans-serif;
+    font-family: geo, monospace;
     color: #84a4ff;
     font-size: 14px;
 }
-#c {
+
+* { margin: 0; padding: 0; }
+
+#box {
     border: 5px solid #84a4ff;
     box-shadow: 0 0 25px #84a4ff;
     -webkit-box-shadow: 0 0 25px #84a4ff;
     -moz-box-shadow: 0 0 25px #84a4ff;
     margin: auto;
+    width: 640px;
+    height: 480px;
+    overflow: hidden;
     margin-top: 20px;
     display: block;
+    background-image: url('gfx/background0.jpg')
 }
+#frame {
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.5);
+    left: 0px;
+    width: 3000px;
+    -webkit-transition: left 0.5s ease-in;
+    -moz-transition: left 0.3s ease-in;
+    -o-transition: left 0.3s ease-in;
+    transition: left 0.3s ease-in;
+}
+#frame > * {
+    float: left;
+    width: 640px;
+    height: 480px;
+}
+
+#menu ul {
+    padding-top: 48px
+}
+
+#menu li {
+    list-style-type: none;
+    font-size: 48px;
+}
+#frame li {
+    -webkit-transition: color 0.3s ease-in;
+    -moz-transition: color 0.3s ease-in;
+    -o-transition: color 0.3s ease-in;
+    transition: color 0.3s ease-in;
+    cursor: pointer;
+}
+.navigation li:before {
+    content: '<  ';
+}
+
+.navigation  {
+    font-size: 24px;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-top: 68px;
+    float: right;
+}
+
+.navigation li {
+    float: left;
+    margin-right: 50px;
+    text-decoration underline;
+    cursor: pointer;
+}
+
+#frame li:hover {
+    color: white;
+}
+
+#frame h1 {
+    float: left;
+    font-size: 48px;
+    margin-top: 48px;
+}
+
+#frame h1, #menu li {
+    margin-left: 48px;
+}
+
+#highscores > div {
+    margin-left: 48px;
+}
+
+#twatr {
+    margin-top: 100px;
+}
+
+#highscores .twtr-ft {
+    opacity: 0.8;
+}
+
 #header {
     font-size: 2em;
     background-color: #111;
@@ -32,7 +116,6 @@ body {
         rgb(17,17,17) 100%
     );
     height: 100px;
-    font-family: georgia, sans-serif;
     border: solid #222;
     border-width: 2px 0px;
     margin-top: 40px;
@@ -56,3 +139,5 @@ body {
     color: #84a4ff;
     text-decoration: none;
 }
+
+a.twitter-share-button { display: block; width: 110px; height: 20px; visibility: hidden;}

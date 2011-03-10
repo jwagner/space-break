@@ -10,6 +10,11 @@ WIDTH = 640
 HEIGHT = 480
 SLOW = false
 INITIAL_VELOCITY = 200
+
+MENU_X = -WIDTH*0
+GAME_X = -WIDTH*1
+HIGHSCORES_X = -WIDTH*2
+CREDITS_X = -WIDTH*3
 # ugly
 if(navigator.userAgent.match(/iPad/i))
     SLOW = true
@@ -37,6 +42,8 @@ RESOURCES =
     nuke: 'sfx/nuke.ogg'
     multiball: 'sfx/multiball.ogg'
 INTERVAL = false
+TWAT = null
+game = null
 
 LEVELS = []
 LEVELS.push (scene) ->
@@ -230,7 +237,7 @@ class InputHandler
         @element.addEventListener('touchmove', ontouch, false)
         # we assume that there is no offsetParent and the offset will never
         # change
-        @left = @element.offsetLeft
+        @left = @element.parentNode.parentNode.offsetLeft
 
     onmove: (e) ->
         @target = e.clientX-@left
@@ -585,15 +592,15 @@ class Game
             @gameover = true
 
     tick: (t) ->
-        if not @gameover
-            @perfhub.tick('waiting')
-            @physics(t)
-            @perfhub.tick('physics')
-            @render()
-            @perfhub.tick('render')
-            @perfhub.draw()
-            @perfhub.tick('perfhub')
-            @perfhub.start()
+        @perfhub.tick('waiting')
+        @physics(t)
+        @perfhub.tick('physics')
+        @render()
+        @perfhub.tick('render')
+        @perfhub.draw()
+        @perfhub.tick('perfhub')
+        @perfhub.start()
+        return not @gameover
 
     physics: (t) ->
 
@@ -816,11 +823,33 @@ main = ->
             ctx.font = '16px geo'
             ctx.fillText("#{loader.pending} resources left", WIDTH/2, 140)
  
-            setTimeout(check, 100)
+            setTimeout(check, 1000)
         else
             AUDIO = loader.audio
             start_game(canvas)
     check()
+
+scrollTo = (x) ->
+    if game
+        game.ctx.clearRect(0, 0, WIDTH, HEIGHT)
+    if TWAT and TWAT.isRunning()
+        TWAT.pause()
+    document.getElementById('frame').style['left'] = "#{x}px"
+
+window['newGame'] = newGame = ->
+    scrollTo(GAME_X)
+    main()
+
+window['menu'] = ->
+    scrollTo(MENU_X)
+
+window['highscores'] = gameover = ->
+    scrollTo(HIGHSCORES_X)
+    if TWAT and not TWAT.isRunning()
+        TWAT.resume()
+
+window['credits'] = ->
+    scrollTo(CREDITS_X)
 
 
 start_game = (canvas) ->
@@ -833,10 +862,7 @@ start_game = (canvas) ->
         if not game.tick(td*0.001)
             if INTERVAL
                 clearInterval(INTERVAL)
-            canvas.onclick = canvas.ontouchstart = ->
-                canvas.onclick = ->
-                canvas.ontouchstart = ->
-                start_game(canvas)
+            gameover()
             return false
         return true
     if requestAnimFrame
@@ -923,11 +949,45 @@ nukeEffect = (game, position) ->
 
 requestAnimFrame = window['requestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['mozRequestAnimationFrame']
 
-applicationCache.oncached = applicationCache.onnoupdate = ->
+
+applicationCache.encached = applicationCache.onnoupdate = ->
     console.log('cached')
-    main()
 
 applicationCache.onupdateready = ->
     applicationCache.swapCache()
+    window.location.reload()
     console.log('cache swaped')
-    main()
+
+window.twatr = ->
+    window.twat = TWAT = new TWTR.Widget({
+      id: 'twatr',
+      version: 2,
+      type: 'search',
+      search: '#html5',
+      interval: 6000,
+      title: '',
+      subject: '',
+      width: 540,
+      height: 200,
+      theme: {
+        shell: {
+          background: 'transparent',
+          color: '#ffffff'
+        },
+        tweets: {
+          background: 'rgba(255, 255, 255, 0.8)',
+          color: '#444444',
+          links: '#1985b5'
+        }
+      },
+      features: {
+        scrollbar: false,
+        loop: true,
+        live: true,
+        hashtags: true,
+        timestamp: true,
+        avatars: true,
+        toptweets: true,
+        behavior: 'default'
+      }
+    }).render().start()

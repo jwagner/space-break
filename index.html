@@ -30,7 +30,7 @@
     </div>
     <div id="box">
         <div id="frame">
-            <div id="menu">
+           <div id="menu">
                 <ul>
                     <li onclick="newGame()">New Game</li>
                     <li onclick="highscores()">Highscores</li>
@@ -40,52 +40,36 @@
             <canvas id="c"></canvas>
             <div id="highscores">
                 <h1>Highscores</h1>
+                <ul class="navigation">
+                    <li onclick="newGame()">New Game</li>
+                    <li onclick="menu()">Menu</li>
+                </ul>
                 <div id="twatr">
                 </div>
+            </div>
+            <div id="credits">
+                <h1>Credits</h1>
+                <ul class="navigation">
+                    <li onclick="menu()">Menu</li>
+                </ul>
             </div>
         </div>
     </div>
     <canvas id="perfhub" width="256" height="256"></canvas>
     <script src="yepnope.js"></script>
     <script>
-        yepnope('break.js');
+        yepnope('http://platform.twitter.com/widgets.js');
+        yepnope({
+            load: 'break.js',
+            callback: function(){
+                yepnope({
+                    test: navigator.onLine,
+                    yep: "http://widgets.twimg.com/j/2/widget.js",
+                    callback: twatr
+                });
+            }
+        });
     </script>
-    <script src="http://platform.twitter.com/widgets.js" async="true"></script> 
-    <script src="http://widgets.twimg.com/j/2/widget.js"></script>
-<script>
-new TWTR.Widget({
-  id: 'twatr',
-  version: 2,
-  type: 'search',
-  search: '#html5',
-  interval: 6000,
-  title: '',
-  subject: '',
-  width: 250,
-  height: 300,
-  theme: {
-    shell: {
-      background: 'transparent',
-      color: '#ffffff'
-    },
-    tweets: {
-      background: 'rgba(255, 255, 255, 0.8)',
-      color: '#444444',
-      links: '#1985b5'
-    }
-  },
-  features: {
-    scrollbar: false,
-    loop: true,
-    live: true,
-    hashtags: true,
-    timestamp: true,
-    avatars: true,
-    toptweets: true,
-    behavior: 'default'
-  }
-}).render().start();
-</script>
 
 </body>
 </html>

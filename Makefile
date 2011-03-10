@@ -1,9 +1,9 @@
 all: break.min.js sfx cache.manifest
 
-cache.manifest: gfx/* sfx/* style.css break.min.js
+cache.manifest: gfx/* sfx/* style.css break.min.js index.html
 	echo "CACHE MANIFEST" > cache.manifest
 	echo "#" `date` >> cache.manifest
-	echo style.css >> cache.manifest
+	#echo style.css >> cache.manifest
 	echo break.min.js >> cache.manifest
 	find sfx/ -iname *.ogg >> cache.manifest
 	find sfx/ -iname *.mp3 >> cache.manifest
