@@ -955,7 +955,7 @@ applicationCache.encached = applicationCache.onnoupdate = ->
 
 applicationCache.onupdateready = ->
     applicationCache.swapCache()
-    window.location.reload()
+    window.location.href = window.location.href
     console.log('cache swaped')
 
 window.twatr = ->

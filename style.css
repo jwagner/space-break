@@ -91,7 +91,7 @@ body {
     margin-left: 48px;
 }
 
-#highscores > div {
+#highscores > div, #credits > * {
     margin-left: 48px;
 }
 
@@ -101,6 +101,14 @@ body {
 
 #highscores .twtr-ft {
     opacity: 0.8;
+}
+
+#credits table {
+    clear: both;
+    font-size: 24px;
+}
+#credits td:last-child {
+    width: 400px;
 }
 
 #header {
