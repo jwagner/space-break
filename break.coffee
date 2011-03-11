@@ -8,8 +8,9 @@ abs = Math.abs
 
 WIDTH = 640
 HEIGHT = 480
-SLOW = false
+SLOW = true
 INITIAL_VELOCITY = 200
+FONT = "'Indie Flower'"
 
 MENU_X = -WIDTH*0
 GAME_X = -WIDTH*1
@@ -21,7 +22,7 @@ if(navigator.userAgent.match(/iPad/i))
 
 AUDIO = true
 RESOURCES =
-    background: 'gfx/background0.jpg'
+    background: 'gfx/background.jpg'
     brick_orange: 'gfx/brick_orange.png'
     brick_green: 'gfx/brick_green.png'
     brick_blue: 'gfx/brick_blue.png'
@@ -162,7 +163,7 @@ class JSPerfHub
         @t = new Date()
         @scale = Infinity
         @bucketSize = @canvas.width/@sampleWidth
-        @ctx.font = '12px geo'
+        @ctx.font = '12px monospace'
         @fontHeight = 16
 
         @visible = false
@@ -361,7 +362,7 @@ class Circle
 
 class Ball
     constructor: (@position, @velocity) ->
-        @shape = new Circle(@position, 10)
+        @shape = new Circle(@position, 12)
 
     draw: (ctx) ->
         img = resources['ball']
@@ -710,20 +711,17 @@ class Game
         @scene.sprites = sprites
 
         # draw hud
-        if not SLOW
-            @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-        else
-            @ctx.fillStyle = 'white'
+        @ctx.fillStyle = '#5C3317'
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
-        @ctx.font = '60px geo'
+        @ctx.font = "60px #{FONT}"
         @ctx.fillText(@scene.score.total, WIDTH/2, -5)
-        @ctx.font = '16px geo'
+        @ctx.font = "16px #{FONT}"
         @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 50)
 
         multiplier_colors = ['white', 'yellow', 'orange', 'red', 'green', 'magenta']
         if @scene.score.pending
-            @ctx.font = '24px geo'
+            @ctx.font = "24px #{FONT}"
             colorIndex = min(floor((@scene.score.multiplier-1)/2), multiplier_colors.length)
             @ctx.fillStyle = multiplier_colors[colorIndex]
             if @scene.score.multiplier > 1
