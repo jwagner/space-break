@@ -54,10 +54,6 @@ body {
     transition: color 0.3s ease-in;
     cursor: pointer;
 }
-.navigation li:before {
-    content: '<  ';
-}
-
 .navigation  {
     font-size: 24px;
     list-style-type: none;
@@ -74,14 +70,21 @@ body {
     cursor: pointer;
 }
 
+.navigation li:before {
+    content: '<  ';
+}
+
+
 #frame li:hover {
     color: white;
 }
 
 #frame h1 {
-    float: left;
     font-size: 48px;
     margin-top: 48px;
+}
+#highscore h1, #credits h1 {
+    float: left;
 }
 
 #frame h1, #menu li {
