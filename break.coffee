@@ -300,62 +300,45 @@ V2.random = ->
 v2 = (x, y) -> new V2(x, y)
 
 
-class AudioPlayerPools
-    constructor: ->
-        @pool = {}
-        @maxPoolSize = 3
-
-    play: (name) ->
-        if not AUDIO
-            return
-        pool = @pool[name]
-        if not pool
-            #pool = @pool[name] = [resources[name]]
-            pool = [resources[name].cloneNode(true)]
-        for audio in pool
-            if audio.readyState == 4 and audio.paused or audio.ended
-                if audio.currentTime == 0
-                    audio.play()
-                    console.log('reuse')
-                    return
-                else
-                    # hack for chrome/webkit
-                    audio.currentTime = 0
-                    audio.pause()
-        audio = audio.cloneNode(true)
-        console.log('clone')
-        #audio.currentTime = 0.0
-        audio.play()
-        if pool.length < @maxPoolSize
-            pool.push(audio)
-
 class AudioPlayerChannels
     constructor: ->
-        @maxChannels = 12
+        @maxChannels = 10
         @channels = []
         for i in [0...@maxChannels]
             @channels.push(document.createElement('audio'))
 
     play: (name, volume=1.0, doLoop) ->
         if not AUDIO
-            return
+            return false
+        src = resources[name].src
+        # try to find one which already has the right src first
         for audio in @channels
-            if audio.paused or audio.ended
-                if audio.currentTime == 0
-                    if audio.src != resources[name].src
-                        audio.src = resources[name].src
-                    audio.volume = volume
-                    audio.play()
-                    if doLoop
-                        if 'loop' in audio
-                            audio.loop = true
-                        else
-                            audio.addEventListener('ended', (-> audio.play()), false)
-                    return
-                else
-                    # hack for chrome/webkit
-                    audio.currentTime = 0
-                    audio.pause()
+            if audio.src == src and @playElement(audio, src, volume, doLoop)
+                return true
+        for audio in @channels
+            if @playElement(audio, src, volume, doLoop)
+                return true
+        return false
+
+    
+    playElement: (audio, src, volume, doLoop) ->
+        if audio.paused or audio.ended
+            if audio.currentTime == 0
+                if audio.src != src
+                    audio.src = src
+                audio.volume = volume
+                audio.play()
+                if doLoop
+                    if 'loop' in audio
+                        audio.loop = true
+                    else
+                        audio.addEventListener('ended', (-> audio.play()), false)
+                return true
+            else
+                # hack for chrome/webkit
+                audio.currentTime = 0
+                audio.pause()
+        return false
 
 audioPlayer = null
 
