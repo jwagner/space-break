@@ -21,7 +21,7 @@ end
 
 file MANIFEST => OGG + MP3 + GFX + OTHERS do |t|
     lines = ["CACHE MANIFEST", "# #{Time.now}"]
-    lines << t.prerequisitesj
+    lines << t.prerequisites
     lines += %w(NETWORK: /* *)
     lines << ''
     File.open(t.name, 'w') do |f|
@@ -39,7 +39,7 @@ rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|
 end
 
 rule '.mp3' => ['.wav'] do |t|
-    sh *(%w(lame -v --resample 48) + [t.source, t.name])
+    sh *(%w(lame -v --resample 48) + ['--ta', 'Jonas Wagner', '--tc', 'http://29a.ch/', t.source, t.name])
 end
 
 rule '.ogg' => ['.wav'] do |t|
