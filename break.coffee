@@ -378,7 +378,7 @@ class ScoreTracker
     add: (n) ->
         @pending += n
         @hits += 1
-        @multiplier = 1+floor(sqrt(@hits))
+        @multiplier = floor(sqrt(@hits))
 
     earn: ->
         @total += @pending*@multiplier
@@ -710,10 +710,7 @@ class Game
         @scene.sprites = sprites
 
         # draw hud
-        if not SLOW
-            @ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
-        else
-            @ctx.fillStyle = 'white'
+        @ctx.fillStyle = 'white'
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
         @ctx.font = '60px geo'
