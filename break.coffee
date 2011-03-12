@@ -685,7 +685,7 @@ class Game
             if @scene.balls.length == 1
                 @scene.score.earn()
         if axis
-            volume = min(1.0, ball.velocity().mag()/MAX_VELOCITY)
+            volume = min(1.0, ball.velocity.mag()/MAX_VELOCITY)
             audioPlayer.play(sound, volume)
             # we don't want the ball to move to flat because it's annoying
             if abs(ball.velocity.y*2) < abs(ball.velocity.x)
