@@ -43,6 +43,6 @@ rule '.mp3' => ['.wav'] do |t|
 end
 
 rule '.ogg' => ['.wav'] do |t|
-    sh 'oggenc', t.source
+    sh 'oggenc', '-a', 'Jonas Wagner', '-c', 'DESCRIPTION=http://29a.ch/', t.source
 end
 
