@@ -1,0 +1,48 @@
+MANIFEST = 'cache.manifest'
+
+
+GFX = FileList['gfx/*']
+
+CSD = FileList['csound/*.csd']
+WAV = CSD.pathmap('sfx/%n.wav')
+MP3 = CSD.pathmap('sfx/%n.mp3')
+OGG = CSD.pathmap('sfx/%n.ogg')
+OTHERS = %w(break.min.js sfx/soundscape.mp3 sfx/soundscape.ogg) 
+
+task :default => [MANIFEST]
+
+task :monitor do
+    sh "coffee -wc *.coffee"
+end
+
+task :clean do
+    sh *(%w(rm -f break.min.js) + MP3 + OGG + WAV + [MANIFEST])
+end
+
+file MANIFEST => OGG + MP3 + GFX + OTHERS do |t|
+    lines = ["CACHE MANIFEST", "# #{Time.now}"]
+    lines << t.prerequisitesj
+    lines += %w(NETWORK: /* *)
+    lines << ''
+    File.open(t.name, 'w') do |f|
+        f.write(lines.join("\r\n"))
+    end
+end
+
+file 'break.min.js' => ['break.js'] do |t|
+	puts "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
+	sh "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
+end
+
+rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|
+    sh 'csound', t.source, "--output=#{t.name}"
+end
+
+rule '.mp3' => ['.wav'] do |t|
+    sh *(%w(lame -v --resample 48) + [t.source, t.name])
+end
+
+rule '.ogg' => ['.wav'] do |t|
+    sh 'oggenc', t.source
+end
+
