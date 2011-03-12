@@ -16,10 +16,10 @@ instr  1
     a3 fofilter a1, k2, 0.005, 0.08
 
     a4 jspline a3, 0.1, 1.0
-    a5 reverb a3, (p3/3)
-    a6 reverb a3, (p3/4)
+    a5 reverb a3, (p3/4)
+    a6 reverb a3, (p3/5)
 
-    out a5*3, a6*3
+    out a5*2, a6*2.1
 
 endin
 </CsInstruments>
