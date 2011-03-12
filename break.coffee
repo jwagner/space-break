@@ -17,9 +17,8 @@ GAME_X = -WIDTH*1
 HIGHSCORES_X = -WIDTH*2
 CREDITS_X = -WIDTH*3
 # ugly
-if(navigator.userAgent.match(/iPad/i))
-    SLOW = true
 if(navigator.userAgent.match(/i(Pad|Phone|Pod)/i))
+    SLOW = true
     IOS = true
 else
     IOS = false
@@ -52,19 +51,6 @@ TWAT = null
 game = null
 
 LEVELS = []
-LEVELS.push (scene) ->
-    for row in [0...2]
-        for col in [0...7]
-            if col&1
-                continue
-            x = col*(Brick.width)+Brick.width
-            y = row*(Brick.height+2)+Brick.height+80
-            if row == 1
-                scene.bricks.push(new ImmortalBrick(v2(x, y)))
-            else
-                scene.bricks.push(new TntBrick(v2(x, y)))
-
-
 LEVELS.push (scene) ->
     positions = [
         v2(150, 100)
@@ -137,7 +123,28 @@ make_level = (height) ->
                             scene.bricks.push(new HardBrick(v2(x, y)))
  
 LEVELS.push make_level(0.4)
+LEVELS.push (scene) ->
+    for row in [0...2]
+        for col in [0...7]
+            if col&1
+                continue
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            if row == 1
+                scene.bricks.push(new ImmortalBrick(v2(x, y)))
+            else
+                scene.bricks.push(new TntBrick(v2(x, y)))
 LEVELS.push make_level(0.5)
+LEVELS.push (scene) ->
+    for row in [0...5]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            if row == 2 and col == 3
+                brick = NukeBrick
+            else
+                brick = HardBrick
+            scene.bricks.push(new brick(v2(x, y)))
 LEVELS.push make_level(0.7)
 LEVELS.push (scene) ->
     for row in [0...5]
@@ -603,7 +610,7 @@ class Game
         if @scene.ballsLeft--
             ball = @scene.balls[0]
             x = max(min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
-            ball.shape.center.set(x, HEIGHT/3*2)
+            ball.shape.center.set(x, @scene.paddle.shape.top-ball.shape.radius)
             ball.velocity = v2(random()-0.5, random()+1).normalize().muls(INITIAL_VELOCITY)
         else
             @scene.gameover = true
@@ -968,7 +975,7 @@ nukeEffect = (game, position) ->
         bctx.putImageData(sdata, 0, 0)
         ctx.drawImage(buffer_clear, 0, 0)
         ctx.drawImage(buffer, 0, 0, width, height)
-        if t > 1.5
+        if t > 2.5
             game.tick = oldtick
         return true
 
