@@ -21,7 +21,7 @@ body {
     overflow: hidden;
     margin-top: 20px;
     display: block;
-    background-image: url('gfx/background0.jpg')
+    background-image: url('gfx/background_menu.jpg')
 }
 #frame {
     position: relative;
@@ -97,6 +97,7 @@ body {
 
 #twatr {
     margin-top: 100px;
+    clear: both;
 }
 
 #highscores .twtr-ft {
@@ -107,8 +108,16 @@ body {
     clear: both;
     font-size: 24px;
 }
+#credits td {
+    vertical-align: top;
+    width: 240px;
+}
 #credits td:last-child {
-    width: 400px;
+    width: 300px;
+}
+
+.nasa td, #credits p {
+    padding-top: 24px;
 }
 
 #header {

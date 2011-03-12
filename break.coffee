@@ -21,7 +21,7 @@ if(navigator.userAgent.match(/iPad/i))
 
 AUDIO = true
 RESOURCES =
-    background: 'gfx/background0.jpg'
+    background: 'gfx/background.jpg'
     brick_orange: 'gfx/brick_orange.png'
     brick_green: 'gfx/brick_green.png'
     brick_blue: 'gfx/brick_blue.png'
