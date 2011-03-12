@@ -18,6 +18,10 @@ CREDITS_X = -WIDTH*3
 # ugly
 if(navigator.userAgent.match(/iPad/i))
     SLOW = true
+if(navigator.userAgent.match(/i(Pad|Phone|Pod)/i))
+    IOS = true
+else
+    IOS = false
 
 AUDIO = true
 RESOURCES =
@@ -41,6 +45,7 @@ RESOURCES =
     explosion: 'sfx/explosion.ogg'
     nuke: 'sfx/nuke.ogg'
     multiball: 'sfx/multiball.ogg'
+    soundscape: 'sfx/soundscape.ogg'
 INTERVAL = false
 TWAT = null
 game = null
@@ -330,15 +335,20 @@ class AudioPlayerChannels
         for i in [0...@maxChannels]
             @channels.push(document.createElement('audio'))
 
-    play: (name) ->
+    play: (name, volume=1.0, doLoop) ->
         if not AUDIO
             return
         for audio in @channels
             if audio.paused or audio.ended
                 if audio.currentTime == 0
                     audio.src = resources[name].src
+                    audio.volume = volume
                     audio.play()
-                    console.log('reuse')
+                    if doLoop
+                        if 'loop' in audio
+                            audio.loop = true
+                        else
+                            audio.addEventListener('ended', (-> audio.play()), false)
                     return
                 else
                     # hack for chrome/webkit
@@ -824,7 +834,7 @@ main = ->
     canvas.width = WIDTH
     canvas.height = HEIGHT
     ctx = canvas.getContext '2d'
-    loader = new Loader(RESOURCES)
+    window['loader'] = loader = new Loader(RESOURCES)
     resources = loader.resources
     check = =>
         if loader.pending > 0
@@ -841,6 +851,13 @@ main = ->
         else
             AUDIO = loader.audio
             start_game(canvas)
+    if IOS
+        # audio can only be started from event handler
+        audio = document.createElement('audio')
+        audio.src = 'sfx/soundscape.mp3'
+        audio.loop = true
+        audio.play()
+
     check()
 
 scrollTo = (x) ->
@@ -852,7 +869,10 @@ scrollTo = (x) ->
 
 window['newGame'] = newGame = ->
     scrollTo(GAME_X)
-    main()
+    if not game
+        main()
+    else
+        start_game()
 
 window['menu'] = ->
     scrollTo(MENU_X)
@@ -867,7 +887,10 @@ window['credits'] = ->
 
 
 start_game = (canvas) ->
-    window['game'] = game = new Game(canvas)
+    if not game
+        window['game'] = game = new Game(canvas)
+    else
+        game.reset()
     t0 = new Date()
     callback = ->
         t1 = new Date()
@@ -886,6 +909,7 @@ start_game = (canvas) ->
         requestAnimFrame(f, canvas)
     else
         INTERVAL = setInterval(callback, 1000/30)
+    audioPlayer.play('soundscape', 0.1, true)
     game.render()
 
 canvas = (w, h) ->
@@ -900,6 +924,7 @@ nukeEffect = (game, position) ->
     cy = position.y
     ctx = game.ctx
     width = WIDTH
+    soundscape: 'sfx/soundscape.ogg'
     height = HEIGHT
     if SLOW
         scale = 8
