@@ -611,7 +611,7 @@ class Game
             ball.shape.center.set(x, HEIGHT/3*2)
             ball.velocity = v2(random()-0.5, random()+1).normalize().muls(INITIAL_VELOCITY)
         else
-            @gameover = true
+            @scene.gameover = true
 
     tick: (t) ->
         @perfhub.tick('waiting')
@@ -622,7 +622,7 @@ class Game
         @perfhub.draw()
         @perfhub.tick('perfhub')
         @perfhub.start()
-        return not @gameover
+        return not @scene.gameover
 
     physics: (t) ->
 
