@@ -684,12 +684,7 @@ class Game
 
 
     render: ->
-        if not SLOW
-            # motion blur
-            @ctx.globalAlpha = 0.5
         @ctx.drawImage(resources['background'], 0, 0)
-        if not SLOW
-            @ctx.globalAlpha = 1.0
 
         @particles.draw(@ctx)
 
