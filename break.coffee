@@ -294,7 +294,7 @@ V2.random = ->
 v2 = (x, y) -> new V2(x, y)
 
 
-class AudioPlayer
+class AudioPlayerPools
     constructor: ->
         @pool = {}
         @maxPoolSize = 3
@@ -323,7 +323,29 @@ class AudioPlayer
         if pool.length < @maxPoolSize
             pool.push(audio)
 
-audioPlayer = new AudioPlayer()
+class AudioPlayerChannels
+    constructor: ->
+        @maxChannels = 12
+        @channels = []
+        for i in [0...@maxChannels]
+            @channels.push(document.createElement('audio'))
+
+    play: (name) ->
+        if not AUDIO
+            return
+        for audio in @channels
+            if audio.paused or audio.ended
+                if audio.currentTime == 0
+                    audio.src = resources[name].src
+                    audio.play()
+                    console.log('reuse')
+                    return
+                else
+                    # hack for chrome/webkit
+                    audio.currentTime = 0
+                    audio.pause()
+
+audioPlayer = new AudioPlayerChannels()
 
 class Rect
     constructor: (@center, @width, @height) ->

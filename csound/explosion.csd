@@ -3,9 +3,9 @@
 </CsOptions>
 
 <CsInstruments>
-sr     = 44100
+sr     = 48000
 ksmps  = 100
-nchnls = 1
+nchnls = 2
 
 instr  1
 ;    k1 expseg 0, .04, 1, p3-.29, 0 ;envelope for noise amplitude
@@ -17,8 +17,9 @@ instr  1
 
     a4 jspline a3, 0.1, 1.0
     a5 reverb a3, (p3/3)
+    a6 reverb a3, (p3/4)
 
-    out a5*3
+    out a5*3, a6*3
 
 endin
 </CsInstruments>

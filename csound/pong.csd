@@ -3,7 +3,7 @@
 </CsOptions>
 
 <CsInstruments>
-sr     = 44100
+sr     = 48000
 ksmps  = 100
 nchnls = 1
 
