@@ -7,7 +7,7 @@ CSD = FileList['csound/*.csd']
 WAV = CSD.pathmap('sfx/%n.wav')
 MP3 = CSD.pathmap('sfx/%n.mp3')
 OGG = CSD.pathmap('sfx/%n.ogg')
-OTHERS = %w(break.min.js sfx/soundscape.mp3 sfx/soundscape.ogg) 
+OTHERS = %w(break.min.js sfx/multiball.ogg sfx/soundscape.ogg) 
 
 task :default => [MANIFEST]
 
@@ -19,7 +19,7 @@ task :clean do
     sh *(%w(rm -f break.min.js) + MP3 + OGG + WAV + [MANIFEST])
 end
 
-file MANIFEST => OGG + MP3 + GFX + OTHERS do |t|
+file MANIFEST => OGG + GFX + OTHERS do |t|
     lines = ["CACHE MANIFEST", "# #{Time.now}"]
     lines << t.prerequisites
     lines += %w(NETWORK: /* *)
@@ -30,8 +30,7 @@ file MANIFEST => OGG + MP3 + GFX + OTHERS do |t|
 end
 
 file 'break.min.js' => ['break.js'] do |t|
-	puts "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
-	sh "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
+	#sh "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
 end
 
 rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|

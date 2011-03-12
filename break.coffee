@@ -10,6 +10,7 @@ WIDTH = 640
 HEIGHT = 480
 SLOW = false
 INITIAL_VELOCITY = 200
+MAX_VELOCITY = 500
 
 MENU_X = -WIDTH*0
 GAME_X = -WIDTH*1
@@ -341,7 +342,8 @@ class AudioPlayerChannels
         for audio in @channels
             if audio.paused or audio.ended
                 if audio.currentTime == 0
-                    audio.src = resources[name].src
+                    if audio.src != resources[name].src
+                        audio.src = resources[name].src
                     audio.volume = volume
                     audio.play()
                     if doLoop
@@ -355,7 +357,7 @@ class AudioPlayerChannels
                     audio.currentTime = 0
                     audio.pause()
 
-audioPlayer = new AudioPlayerChannels()
+audioPlayer = null
 
 class Rect
     constructor: (@center, @width, @height) ->
@@ -683,13 +685,14 @@ class Game
             if @scene.balls.length == 1
                 @scene.score.earn()
         if axis
-            audioPlayer.play(sound)
+            volume = min(1.0, ball.velocity().mag()/MAX_VELOCITY)
+            audioPlayer.play(sound, volume)
             # we don't want the ball to move to flat because it's annoying
             if abs(ball.velocity.y*2) < abs(ball.velocity.x)
                 ball.velocity.x *= 0.8
             # speed up ball after every bounce with an upper limit of
-            # 400 px/s
-            ball.velocity = ball.velocity.normalize().muls(min(ball.velocity.mag()*1.01, 500))
+            # MAX_VELOCITY px/s
+            ball.velocity = ball.velocity.normalize().muls(min(ball.velocity.mag()*1.01, MAX_VELOCITY))
             @particles.spawn(new_position.copy(), ball.velocity.muls(0.5), ball.velocity.mag(), 1.0, 25)
         else
             ball.position.iadd(ball.velocity.muls(t))
@@ -808,8 +811,7 @@ class Loader
         audio.addEventListener('ended', canplaythough, false)
         audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
         if ((src.slice(-4) == '.ogg' || src.slice(-4) == '.oga') &&
-                audio.canPlayType('audio/ogg; codecs="vorbis"') != 'probably' ||
-                        /webkit/i.test(navigator.userAgent))
+                audio.canPlayType('audio/ogg; codecs="vorbis"') != 'probably')
             console.log('using mp3')
             src = src.slice(0, src.length-3) + 'mp3'
         audio.src = src
@@ -836,6 +838,7 @@ main = ->
     ctx = canvas.getContext '2d'
     window['loader'] = loader = new Loader(RESOURCES)
     resources = loader.resources
+    audioPlayer = new AudioPlayerChannels()
     check = =>
         if loader.pending > 0
             ctx.fillStyle = 'white'
