@@ -120,6 +120,7 @@ body {
 }
 #highscores label {
     font-size: 1.2em;
+    line-height: 1.6em;
 }
 
 #highscores input[type="submit"] {
