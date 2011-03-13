@@ -45,7 +45,18 @@
                     <li onclick="newGame()">New Game</li>
                     <li onclick="menu()">Menu</li>
                 </ul>
-                <div id="twatr">
+                <form action="http://twitter.com/share" target="_blank">
+                    <textarea name="text"
+                    onkeyup="this.nextElementSibling.innerText =
+                    this.value.length + '/ 100 Characters';">Just scored 1235 at #spacebreak #html5 game</textarea>
+                    <label for="text"></label>
+                    <input type="hidden" name="via" value="29a_ch" />
+                    <input type="hidden" name="related" value="29a_ch" />
+                    <input type="hidden" name="url" value="http://29a.ch/spacebreak/" />
+                    <input type="hidden" name="url" value="http://29a.ch/spacebreak/" />
+                    <input type="submit" value="Tweet" />
+                </form>
+               <div id="twatr">
                 </div>
             </div>
             <div id="credits">

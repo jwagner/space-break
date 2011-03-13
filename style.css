@@ -87,7 +87,58 @@ body {
     float: left;
 }
 
-#frame h1, #menu li {
+#frame form {
+    clear: both;
+    margin-top: 124px;
+    display: block;
+}
+
+#highscores textarea {
+    width: 532px;
+    height: 65px;
+    margin-top: 24px;
+    resize: none;
+    display: block;
+    clear: both;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    padding: 4px;
+    font-size: 1.2em;
+    font-family: geo;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+#highscores label {
+    font-size: 1.2em;
+}
+
+#highscores input[type="submit"] {
+    /* stolen from formalize.me */
+  font-family: geo;
+  font-size: 14px;
+  margin-top: 5px;
+  -webkit-appearance: none;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: #ddd url(../images/button.png) repeat-x;
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #fff), color-stop(1, #ddd));
+  background: -moz-linear-gradient(top center, #fff 0%, #ddd 100%);
+  border: 1px solid;
+  border-color: #ddd #bbb #999;
+  cursor: pointer;
+  color: #333;
+  outline: 0;
+  overflow: visible;
+  padding: 3px 10px 4px;
+  text-shadow: #fff 0 1px 1px;
+  width: auto;
+  float: right;
+  margin-right: 50px;
+}
+
+#frame h1, #menu li, #frame form {
     margin-left: 48px;
 }
 
@@ -96,7 +147,6 @@ body {
 }
 
 #twatr {
-    margin-top: 100px;
     clear: both;
 }
 
