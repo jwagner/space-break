@@ -874,7 +874,9 @@ window['highscores'] = gameover = ->
     scrollTo(HIGHSCORES_X)
     if TWAT and not TWAT.isRunning()
         TWAT.resume()
-
+    if game
+        score = game.scene.score.total
+        document.getElementById('twattext').value = "I scored #{score} at #spacebreak #html5 #game"
 window['credits'] = ->
     scrollTo(CREDITS_X)
 
