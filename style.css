@@ -166,10 +166,6 @@ body {
     width: 300px;
 }
 
-.nasa td, #credits p {
-    padding-top: 24px;
-}
-
 #header {
     font-size: 2em;
     background-color: #111;
