@@ -108,6 +108,15 @@ body {
     font-size: 1.2em;
     font-family: geo;
     background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid transparent;
+}
+#highscores textarea:focus, #highscores input:focus {
+    -moz-box-shadow: 0 0 10px #84a4ff;
+    -webkit-box-shadow: 0 0 7px #84a4ff;
+    box-shadow: 0 0 7px #84a4ff;
+    border: 2px solid #84a4ff;
+    outline: none;
+    z-index: 1
 }
 #highscores label {
     font-size: 1.2em;
@@ -136,6 +145,10 @@ body {
   width: auto;
   float: right;
   margin-right: 50px;
+}
+
+#highscores .twtr-hd {
+    padding: 3px;
 }
 
 #frame h1, #menu li, #frame form {
