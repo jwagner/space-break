@@ -7,7 +7,7 @@ CSD = FileList['csound/*.csd']
 WAV = CSD.pathmap('sfx/%n.wav')
 MP3 = CSD.pathmap('sfx/%n.mp3')
 OGG = CSD.pathmap('sfx/%n.ogg')
-OTHERS = %w(break.min.js sfx/multiball.ogg sfx/soundscape.ogg) 
+OTHERS = %w(yepnope.js break.min.js sfx/multiball.ogg sfx/soundscape.ogg) 
 
 task :default => [MANIFEST]
 
