@@ -19,7 +19,7 @@ task :clean do
     sh *(%w(rm -f break.min.js) + MP3 + OGG + WAV + [MANIFEST])
 end
 
-file MANIFEST => OGG + GFX + OTHERS do |t|
+file MANIFEST => OGG + GFX + OTHERS + %w(index.html) do |t|
     lines = ["CACHE MANIFEST", "# #{Time.now}"]
     lines << t.prerequisites
     lines += %w(NETWORK: /* *)
@@ -27,6 +27,7 @@ file MANIFEST => OGG + GFX + OTHERS do |t|
     File.open(t.name, 'w') do |f|
         f.write(lines.join("\r\n"))
     end
+    puts "wrote #{t.name}"
 end
 
 file 'break.min.js' => ['break.js'] do |t|

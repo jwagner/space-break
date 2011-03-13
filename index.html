@@ -87,6 +87,12 @@
     <script src="http://widgets.twimg.com/j/2/widget.js"></script>
     <script>
         yepnope('http://platform.twitter.com/widgets.js');
+        yepnope({
+            test: navigator.onLine,
+            yep: "http://widgets.twimg.com/j/2/widget.js",
+            callback: twatr
+        });
+
  /*       yepnope({
             load: 'break.js',
             callback: function(){
