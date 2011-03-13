@@ -536,6 +536,9 @@ class ParticleSystem
         return
 
     tick: (t) ->
+        # no smaller time deltas than 0.1
+        # to avoid problems
+        t = min(t, 0.1)
         @t += t
         for particle in @particles
             if particle.ttl > @t
