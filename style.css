@@ -156,6 +156,10 @@ body {
     margin-left: 48px;
 }
 
+#menu h1 {
+    font-size: 64px;
+}
+
 #highscores > div, #credits > * {
     margin-left: 48px;
 }
