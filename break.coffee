@@ -930,9 +930,9 @@ scrollTo = (x) ->
 
 window['newGame'] = newGame = ->
     localStorage[LEVEL_KEY] = 0
-    resumeGame()
+    continueGame()
 
-window['resumeGame'] = resumeGame = ->
+window['continueGame'] = continueGame = ->
     scrollTo(GAME_X)
     if not game
         main()
@@ -941,6 +941,7 @@ window['resumeGame'] = resumeGame = ->
 
 window['menu'] = ->
     scrollTo(MENU_X)
+    setContinue()
 
 window['highscores'] = gameover = ->
     scrollTo(HIGHSCORES_X)
@@ -978,6 +979,21 @@ start_game = (canvas) ->
         INTERVAL = setInterval(callback, 1000/30)
     audioPlayer.play('soundscape', 0.1, true)
     game.render()
+
+
+setContinue = ->
+    try
+        level = localStorage[LEVEL_KEY]*1
+    catch error
+        level = 0
+    element = document.getElementsByClassName('continue')[0]
+    if level
+        element.style.display = 'block'
+        element.innerHTML = 'Continue level ' + (level+1)
+    else
+        element.style.display = 'none'
+setContinue()
+     
 
 canvas = (w, h) ->
     c = document.createElement('canvas')

@@ -160,6 +160,10 @@ body {
     font-size: 64px;
 }
 
+.continue {
+    display: none;
+}
+
 #highscores > div, #credits > * {
     margin-left: 48px;
 }
