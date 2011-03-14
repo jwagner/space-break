@@ -333,10 +333,12 @@ v2 = (x, y) -> new V2(x, y)
 
 class AudioPlayerChannels
     constructor: ->
-        @maxChannels = 10
+        @maxChannels = 15
         @channels = []
         for i in [0...@maxChannels]
-            @channels.push(document.createElement('audio'))
+            audio = document.createElement('audio')
+            audio.used = new Date()*1
+            @channels.push(audio)
 
     play: (name, volume=1.0, doLoop) ->
         if not AUDIO
@@ -346,6 +348,8 @@ class AudioPlayerChannels
         for audio in @channels
             if audio.src == src and @playElement(audio, src, volume, doLoop)
                 return true
+        # LRU
+        @channels.sort((a, b) -> a.used > b.used)
         for audio in @channels
             if @playElement(audio, src, volume, doLoop)
                 return true
@@ -358,6 +362,7 @@ class AudioPlayerChannels
                 if audio.src != src
                     audio.src = src
                 audio.volume = volume
+                audio.used = new Date()*1
                 audio.play()
                 if doLoop
                     if 'loop' in audio
@@ -829,7 +834,9 @@ class Loader
             console.log('can play')
             audio.pause()
             audio.volume = 1.0
-            @_success(name, audio)
+            #@_success(name, audio)
+            # hack to have less audio elements around
+            @_success(name, {src: audio.src})
         audio.addEventListener('canplaythrough', canplaythough, false)
         audio.addEventListener('ended', canplaythough, false)
         audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
