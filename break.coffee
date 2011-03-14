@@ -23,6 +23,7 @@ if(navigator.userAgent.match(/i(Pad|Phone|Pod)/i))
 else
     IOS = false
 
+LEVEL_KEY = 'starbreak.level'
 AUDIO = true
 RESOURCES =
     background: 'gfx/background.jpg'
@@ -627,8 +628,12 @@ class Game
         @reset()
 
     reset: ->
+        try
+            level = localStorage[LEVEL_KEY]*1
+        catch error
+            level = 0
         @scene =
-            level: 0
+            level: level
             gameover: false
             score: new ScoreTracker()
             ballsLeft: 3
@@ -644,6 +649,7 @@ class Game
     nextLevel: ->
         @scene.ballsLeft += 1
         @scene.bricks = []
+        localStorage[LEVEL_KEY] = @scene.level
         if @scene.level < LEVELS.length
             LEVELS[@scene.level++](@scene)
         else
@@ -923,6 +929,10 @@ scrollTo = (x) ->
     document.getElementById('frame').style['left'] = "#{x}px"
 
 window['newGame'] = newGame = ->
+    localStorage[LEVEL_KEY] = 0
+    resumeGame()
+
+window['resumeGame'] = resumeGame = ->
     scrollTo(GAME_X)
     if not game
         main()
