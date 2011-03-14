@@ -52,6 +52,30 @@ game = null
 
 LEVELS = []
 LEVELS.push (scene) ->
+    for row in [0...7]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            brick = HardBrick
+            if row%2 == 1
+                brick = XtraBallBrick
+            scene.bricks.push(new brick(v2(x, y)))
+
+
+LEVELS.push (scene) ->
+    for row in [0...9]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            brick = HardBrick
+            if col%2 == 1
+                if row == 0
+                    brick = XtraBallBrick
+                else
+                    continue
+            scene.bricks.push(new brick(v2(x, y)))
+
+LEVELS.push (scene) ->
     positions = [
         v2(150, 100)
         v2(150, 130)
@@ -568,6 +592,11 @@ class Game
     constructor: (@canvas) ->
         @ctx = @canvas.getContext '2d'
         @input = new InputHandler(@canvas)
+        # do nothing in the first 10 frames
+        # to allow jit to warm up and fix some
+        # other issues related to initialization
+        # especially on ios
+        @warmup = 10
         @reset()
 
     reset: ->
