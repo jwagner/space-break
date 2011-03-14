@@ -51,30 +51,26 @@ TWAT = null
 game = null
 
 LEVELS = []
+# armored nuke
 LEVELS.push (scene) ->
-    for row in [0...7]
+    for row in [0...6]
         for col in [0...7]
             x = col*(Brick.width)+Brick.width
             y = row*(Brick.height+2)+Brick.height+80
-            brick = HardBrick
-            if row%2 == 1
-                brick = XtraBallBrick
-            scene.bricks.push(new brick(v2(x, y)))
-
-
-LEVELS.push (scene) ->
-    for row in [0...9]
-        for col in [0...7]
-            x = col*(Brick.width)+Brick.width
-            y = row*(Brick.height+2)+Brick.height+80
-            brick = HardBrick
-            if col%2 == 1
+            if row == 4 and col == 3
+                brick = NukeBrick
+            else if row == 5 or col == 0 or col == 6
+                brick = ImmortalBrick
+            else if row == 4 or row == 3 or row == 2
+                brick = Brick
+            else
                 if row == 0
-                    brick = XtraBallBrick
-                else
                     continue
+                brick = HardBrick
             scene.bricks.push(new brick(v2(x, y)))
-
+    scene.bricks.push(new XtraBallBrick(v2(WIDTH-10, 30)))
+    scene.bricks.push(new XtraBallBrick(v2(10, 30)))
+# hi
 LEVELS.push (scene) ->
     positions = [
         v2(150, 100)
@@ -104,6 +100,7 @@ LEVELS.push (scene) ->
         scene.bricks.push(new Brick(v2(position.x, position.y+50)))
     scene.bricks.push(new TntBrick(v2(450, 100)))
 
+# orange green
 LEVELS.push (scene) ->
     for row in [0...5]
         for col in [0...7]
@@ -112,6 +109,7 @@ LEVELS.push (scene) ->
             color = ['orange', 'green'][(row&1)^(col&1)]
             scene.bricks.push(new ColorBrick(v2(x, y), color))
 
+# orange blue tnt
 LEVELS.push (scene) ->
     for row in [0...5]
         for col in [0...7]
@@ -122,7 +120,6 @@ LEVELS.push (scene) ->
                 scene.bricks.push(new TntBrick(v2(x, y)))
             else
                 scene.bricks.push(new ColorBrick(v2(x, y), color))
-
 
 make_level = (height) ->
     (scene) ->
@@ -147,6 +144,7 @@ make_level = (height) ->
                             scene.bricks.push(new HardBrick(v2(x, y)))
  
 LEVELS.push make_level(0.4)
+# introducing the immortals
 LEVELS.push (scene) ->
     for row in [0...2]
         for col in [0...7]
@@ -159,6 +157,7 @@ LEVELS.push (scene) ->
             else
                 scene.bricks.push(new TntBrick(v2(x, y)))
 LEVELS.push make_level(0.5)
+# introducing the nuke
 LEVELS.push (scene) ->
     for row in [0...5]
         for col in [0...7]
@@ -179,8 +178,31 @@ LEVELS.push (scene) ->
                 scene.bricks.push(new XtraBallBrick(v2(x, y)))
             else
                 scene.bricks.push(new HardBrick(v2(x, y)))
+LEVELS.push make_level(0.8)
+# towers of steel
+LEVELS.push (scene) ->
+    for row in [0...9]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            brick = HardBrick
+            if col%2 == 1
+                if row == 0
+                    brick = XtraBallBrick
+                else
+                    continue
+            scene.bricks.push(new brick(v2(x, y)))
 
-
+# rows of xtra balls
+LEVELS.push (scene) ->
+    for row in [0...7]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            brick = HardBrick
+            if row%2 == 1
+                brick = XtraBallBrick
+            scene.bricks.push(new brick(v2(x, y)))
  
 
 resources = {}
