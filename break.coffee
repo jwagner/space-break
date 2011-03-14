@@ -930,6 +930,10 @@ main = ->
         audio = document.createElement('audio')
         audio.src = 'sfx/soundscape.mp3'
         audio.loop = true
+        loop_ = ->
+            if audio.currentTime > audio.duration - 5
+                audio.currentTime = 0
+        window.setInterval(loop_, 1000)
         audio.play()
 
     check()
