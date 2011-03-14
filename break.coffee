@@ -627,6 +627,7 @@ class Game
         # other issues related to initialization
         # especially on ios
         @warmup = 10
+        @delay = 0
         @reset()
 
     reset: ->
@@ -649,6 +650,8 @@ class Game
         @perfhub.start()
 
     nextLevel: ->
+        if @scene.level > 0
+            @delay = 1
         @scene.ballsLeft += 1
         @scene.bricks = []
         localStorage[LEVEL_KEY] = @scene.level
@@ -684,6 +687,10 @@ class Game
             if t < 0.05
                 @warmup--
             t = 0.00001
+
+        if @delay > 0
+            @delay -= t
+            t = 0
  
         @perfhub.tick('waiting')
         # no physics steps bigger than 0.05s
