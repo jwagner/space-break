@@ -961,7 +961,6 @@ nukeEffect = (game, position) ->
     w = floor(width/scale)
     h = floor(height/scale)
     buffer = canvas(w, h)
-    #document.body.appendChild(buffer)
     buffer_clear = canvas(width, height)
     bctx = buffer.getContext('2d')
     bctx_clear = buffer_clear.getContext('2d')
