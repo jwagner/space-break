@@ -1058,7 +1058,7 @@ window.twatr = ->
       id: 'twatr',
       version: 2,
       type: 'search',
-      search: '#html5',
+      search: '#spacebreak',
       interval: 6000,
       title: '',
       subject: '',
