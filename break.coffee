@@ -20,6 +20,8 @@ CREDITS_X = -WIDTH*3
 if(navigator.userAgent.match(/i(Pad|Phone|Pod)/i))
     SLOW = true
     IOS = true
+    MAX_VELOCITY = 350
+    INITIAL_VELOCITY = 150
 else
     IOS = false
 
@@ -620,7 +622,7 @@ class Game
     constructor: (@canvas) ->
         @ctx = @canvas.getContext '2d'
         @input = new InputHandler(@canvas)
-        # do nothing in the first 10 frames
+        # do nothing in the first warmup frames
         # to allow jit to warm up and fix some
         # other issues related to initialization
         # especially on ios
@@ -678,11 +680,16 @@ class Game
             @scene.gameover = true
 
     tick: (t) ->
-        # no smaller time deltas than 0.1
-        # to avoid problems
-        t = min(t, 0.1)
+        if @warmup > 0
+            if t < 0.05
+                @warmup--
+            t = 0.00001
  
         @perfhub.tick('waiting')
+        # no physics steps bigger than 0.05s
+        while t > 0.05
+            @physics(0.05)
+            t -= 0.05
         @physics(t)
         @perfhub.tick('physics')
         @render()
@@ -799,8 +806,14 @@ class Game
         @ctx.fillStyle = 'white'
         @ctx.textAlign = 'center'
         @ctx.textBaseline = 'top'
-        @ctx.font = '60px geo'
-        @ctx.fillText(@scene.score.total, WIDTH/2, -5)
+        if @warmup > 0
+            @ctx.font = '40px geo'
+            @ctx.fillStyle = 'red'
+            @ctx.fillText('WARMING UP... PLEASE WAIT', WIDTH/2, -5)
+            @ctx.fillStyle = 'white'
+        else
+            @ctx.font = '60px geo'
+            @ctx.fillText(@scene.score.total, WIDTH/2, -5)
         @ctx.font = '16px geo'
         @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 50)
 
