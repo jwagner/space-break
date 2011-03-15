@@ -9,7 +9,7 @@ abs = Math.abs
 WIDTH = 640
 HEIGHT = 480
 SLOW = false
-INITIAL_VELOCITY = 200
+INITIAL_VELOCITY = 250
 MAX_VELOCITY = 500
 
 MENU_X = -WIDTH*0
@@ -54,25 +54,7 @@ TWAT = null
 game = null
 
 LEVELS = []
-# armored nuke
-LEVELS.push (scene) ->
-    for row in [0...6]
-        for col in [0...7]
-            x = col*(Brick.width)+Brick.width
-            y = row*(Brick.height+2)+Brick.height+80
-            if row == 4 and col == 3
-                brick = NukeBrick
-            else if row == 5 or col == 0 or col == 6
-                brick = ImmortalBrick
-            else if row == 4 or row == 3 or row == 2
-                brick = Brick
-            else
-                if row == 0
-                    continue
-                brick = HardBrick
-            scene.bricks.push(new brick(v2(x, y)))
-    scene.bricks.push(new XtraBallBrick(v2(WIDTH-10, 30)))
-    scene.bricks.push(new XtraBallBrick(v2(10, 30)))
+
 # hi
 LEVELS.push (scene) ->
     positions = [
@@ -124,6 +106,15 @@ LEVELS.push (scene) ->
             else
                 scene.bricks.push(new ColorBrick(v2(x, y), color))
 
+# steel floors
+LEVELS.push (scene) ->
+    for row in [0...3]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height*3.0)+Brick.height+80
+            scene.bricks.push(new HardBrick(v2(x, y)))
+    scene.bricks.push(new XtraBallBrick(v2(WIDTH/2, Brick.height*5)))
+ 
 make_level = (height) ->
     (scene) ->
         cols = floor(WIDTH/(Brick.width))-1
@@ -195,6 +186,25 @@ LEVELS.push (scene) ->
                 else
                     continue
             scene.bricks.push(new brick(v2(x, y)))
+# armored nuke
+LEVELS.push (scene) ->
+    for row in [0...6]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            if row == 4 and col == 3
+                brick = NukeBrick
+            else if row == 5 or col == 0 or col == 6
+                brick = ImmortalBrick
+            else if row == 4 or row == 3 or row == 2
+                brick = Brick
+            else
+                if row == 0
+                    continue
+                brick = HardBrick
+            scene.bricks.push(new brick(v2(x, y)))
+    scene.bricks.push(new XtraBallBrick(v2(WIDTH-10, 30)))
+    scene.bricks.push(new XtraBallBrick(v2(10, 30)))
 
 # rows of xtra balls
 LEVELS.push (scene) ->
@@ -677,8 +687,8 @@ class Game
         if @scene.ballsLeft--
             ball = @scene.balls[0]
             x = max(min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
-            ball.shape.center.set(x, @scene.paddle.shape.top-ball.shape.radius)
-            ball.velocity = v2(random()-0.5, random()+1).normalize().muls(INITIAL_VELOCITY)
+            ball.shape.center.set(x, @scene.paddle.shape.top-ball.shape.radius-1)
+            ball.velocity = v2(random()-0.5, random()-2).normalize().muls(INITIAL_VELOCITY)
         else
             @scene.gameover = true
 
