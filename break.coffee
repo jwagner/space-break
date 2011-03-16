@@ -648,6 +648,7 @@ class Game
         @scene =
             level: level
             gameover: false
+            victory: false
             score: new ScoreTracker()
             ballsLeft: 3
             bricks: []
@@ -668,7 +669,9 @@ class Game
         if @scene.level < LEVELS.length
             LEVELS[@scene.level++](@scene)
         else
-            LEVELS[LEVELS.length-1](@scene)
+            localStorage[LEVEL_KEY] = 0
+            @scene.gameover = true
+            @scene.victory = true
         @scene.score.earn()
         @scene.sprites = []
         @newBall()
@@ -983,7 +986,12 @@ window['highscores'] = gameover = ->
         TWAT.resume()
     if game
         score = game.scene.score.total
-        document.getElementById('twattext').value = "I scored #{score} at #spacebreak #html5 #game"
+        if game.scene.victory
+            text = "I just finished #spacebreak #html5 #game with a score of #{score}. :)"
+        else
+            text = "I scored #{score} at #spacebreak #html5 #game"
+        document.getElementById('twattext').value = text
+            
 window['credits'] = ->
     scrollTo(CREDITS_X)
 
