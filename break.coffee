@@ -186,6 +186,20 @@ LEVELS.push (scene) ->
                 else
                     continue
             scene.bricks.push(new brick(v2(x, y)))
+
+
+# rows of xtra balls
+LEVELS.push (scene) ->
+    for row in [0...7]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height+2)+Brick.height+80
+            brick = HardBrick
+            if row%2 == 1
+                brick = XtraBallBrick
+            scene.bricks.push(new brick(v2(x, y)))
+
+
 # armored nuke
 LEVELS.push (scene) ->
     for row in [0...6]
@@ -206,17 +220,7 @@ LEVELS.push (scene) ->
     scene.bricks.push(new XtraBallBrick(v2(WIDTH-10, 30)))
     scene.bricks.push(new XtraBallBrick(v2(10, 30)))
 
-# rows of xtra balls
-LEVELS.push (scene) ->
-    for row in [0...7]
-        for col in [0...7]
-            x = col*(Brick.width)+Brick.width
-            y = row*(Brick.height+2)+Brick.height+80
-            brick = HardBrick
-            if row%2 == 1
-                brick = XtraBallBrick
-            scene.bricks.push(new brick(v2(x, y)))
- 
+
 
 resources = {}
 
@@ -637,7 +641,6 @@ class Game
         # other issues related to initialization
         # especially on ios
         @warmup = 10
-        @delay = 0
         @reset()
 
     reset: ->
@@ -661,8 +664,6 @@ class Game
         @perfhub.start()
 
     nextLevel: ->
-        if @scene.level > 0
-            @delay = 1
         @scene.ballsLeft += 1
         @scene.bricks = []
         localStorage[LEVEL_KEY] = @scene.level
@@ -701,10 +702,6 @@ class Game
                 @warmup--
             t = 0.00001
 
-        if @delay > 0
-            @delay -= t
-            t = 0
- 
         @perfhub.tick('waiting')
         # no physics steps bigger than 0.05s
         while t > 0.05
@@ -835,7 +832,12 @@ class Game
             @ctx.font = '60px geo'
             @ctx.fillText(@scene.score.total, WIDTH/2, -5)
         @ctx.font = '16px geo'
-        @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 50)
+        if @scene.ballsLeft > 1
+            @ctx.fillText("#{@scene.ballsLeft} balls left", WIDTH/2, 50)
+        else if @scene.ballsLeft == 1
+            @ctx.fillText("#{@scene.ballsLeft} ball left", WIDTH/2, 50)
+        else
+            @ctx.fillText("no ball left", WIDTH/2, 50)
 
         multiplier_colors = ['white', 'yellow', 'orange', 'red', 'green', 'magenta']
         if @scene.score.pending
