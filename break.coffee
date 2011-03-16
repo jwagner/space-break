@@ -570,16 +570,14 @@ class Paddle
 
     draw: (ctx) ->
         ctx.drawImage(resources[@image], @shape.left-20, @shape.top-20)
-        return
-        sx = @shape.left-10
-        sw = @shape.width*2-20
+        sx = @shape.left+10
+        sw = @shape.width*0.75
         sy = @shape.top+10
-        sh = @shape.height*2-20
+        sh = @shape.height*0.75
+        ctx.globalCompositeOperation = 'lighter'
         ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left, @shape.top, @shape.width, @shape.height)
-        #ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-        #ctx.globalCompositeOperation = 'lighter'
-        #ctx.fillRect(@shape.left, @shape.top, @shape.width, @shape.height)
-        #ctx.globalCompositeOperation = 'source-over'
+        ctx.globalCompositeOperation = 'source-over'
+        ctx.globalAlpha = 1.0
 
 
 class Particle
@@ -784,6 +782,7 @@ class Game
         @scene.paddle.velocity += @scene.paddle.acceleration
         @scene.paddle.velocity *= 0.7
         @scene.paddle.shape.center.x += @scene.paddle.velocity
+        @scene.paddle.shape.center.x = min(WIDTH-@scene.paddle.shape.width*0.5, max(@scene.paddle.shape.width*0.5, @scene.paddle.shape.center.x))
         @scene.paddle.shape.recalc()
         for ball in @scene.balls
             shape = ball.shape
