@@ -1,5 +1,6 @@
-MANIFEST = 'cache.manifest'
-
+MANIFEST_DEV = 'cache.manifest'
+MANIFEST_OGG = 'dist/cache.manifest'
+MANIFEST_IOS = 'dist/cache.ios.manifest'
 
 GFX = FileList['gfx/*']
 
@@ -7,31 +8,55 @@ CSD = FileList['csound/*.csd']
 WAV = CSD.pathmap('sfx/%n.wav')
 MP3 = CSD.pathmap('sfx/%n.mp3')
 OGG = CSD.pathmap('sfx/%n.ogg')
-OTHERS = %w(yepnope.js break.min.js sfx/multiball.ogg sfx/soundscape.ogg) 
+OTHERS = %w(sfx/multiball.ogg sfx/soundscape.ogg) 
+JS = %w(break.min.js yepnope.js)
+CSS = %w(style.css)
+HTML = %w(index.html)
+OGG_DEPS = OGG + GFX + OTHERS + JS + CSS + HTML
 
-task :default => [MANIFEST]
+task :default => [MANIFEST_DEV]
 
 task :monitor do
     sh "coffee -wc *.coffee"
 end
 
 task :clean do
-    sh *(%w(rm -f break.min.js) + MP3 + OGG + WAV + [MANIFEST])
+    sh *(%w(rm -f break.min.js) + MP3 + OGG + WAV + [MANIFEST_DEV])
 end
 
-file MANIFEST => OGG + GFX + OTHERS + %w(index.html) do |t|
+task :clean_dist do
+    sh "rm -rf dist && mkdir dist"
+end
+
+task :build_dist => [:clean_dist, MANIFEST_OGG] do
+    sh "mkdir dist/sfx && cp sfx/*.ogg dist/sfx"
+    sh "mkdir dist/gfx && cp gfx/* dist/gfx"
+    sh *(%w(cp) + JS + CSS + HTML + %w(dist))
+    sh "mv dist/break.min.js dist/break.js"
+end
+
+file MANIFEST_DEV => OGG + GFX + OTHERS + %w(index.html) do |t|
+    write_manifest(t.name, t.prerequisites)
+end
+
+file MANIFEST_OGG => OGG_DEPS do |t|
+    write_manifest(t.name, t.prerequisites)
+end
+
+def write_manifest(name, entries)
     lines = ["CACHE MANIFEST", "# #{Time.now}"]
-    lines << t.prerequisites
+    lines << entries
     lines += %w(NETWORK: /* *)
     lines << ''
-    File.open(t.name, 'w') do |f|
+    File.open(name, 'w') do |f|
         f.write(lines.join("\r\n"))
     end
-    puts "wrote #{t.name}"
+    puts "wrote manifest #{name} (#{entries.length} entries)"
 end
 
 file 'break.min.js' => ['break.js'] do |t|
 	#sh "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
+	sh "java -jar compiler.jar --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
 end
 
 rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|
