@@ -6,6 +6,10 @@ min = Math.min
 max = Math.max
 abs = Math.abs
 
+if not window.console?
+    window.console =
+        log: ->
+
 WIDTH = 640
 HEIGHT = 480
 SLOW = false
@@ -577,7 +581,6 @@ class Paddle
         ctx.globalCompositeOperation = 'lighter'
         ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left, @shape.top, @shape.width, @shape.height)
         ctx.globalCompositeOperation = 'source-over'
-        ctx.globalAlpha = 1.0
 
 
 class Particle
@@ -808,6 +811,7 @@ class Game
             if not brick.destroyed
                 brick.draw(@ctx)
 
+
         for ball in @scene.balls
             ball.draw(@ctx)
 
@@ -869,7 +873,6 @@ class Loader
         @failed++
         @pending--
         error.resource = name
-        throw error
 
     load: (resources) ->
         for name, src of resources
@@ -896,7 +899,6 @@ class Loader
             console.log('can play')
             audio.pause()
             audio.volume = 1.0
-            #@_success(name, audio)
             # hack to have less audio elements around
             @_success(name, {src: audio.src})
         audio.addEventListener('canplaythrough', canplaythough, false)
@@ -904,8 +906,12 @@ class Loader
         audio.addEventListener('error', ((e) =>  @_error(name, e)), false)
         if ((src.slice(-4) == '.ogg' || src.slice(-4) == '.oga') &&
                 audio.canPlayType('audio/ogg; codecs="vorbis"') != 'probably')
-            console.log('using mp3')
-            src = src.slice(0, src.length-3) + 'mp3'
+            #console.log('using mp3')
+            #disabling mp3 support - because I can
+            @audio = false
+            @_error(name, 'no support for ogg')
+            return
+            #src = src.slice(0, src.length-3) + 'mp3'
         audio.src = src
         # get all the browsers to preload the audio file
         # what a mess
@@ -1019,7 +1025,7 @@ start_game = (canvas) ->
                 requestAnimFrame(f, canvas)
         requestAnimFrame(f, canvas)
     else
-        INTERVAL = setInterval(callback, 1000/30)
+        INTERVAL = setInterval(callback, 1)
     audioPlayer.play('soundscape', 0.1, true)
     game.render()
 
