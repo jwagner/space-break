@@ -1,7 +1,7 @@
 STAR BREAK
 ==========
 
-Star Break is a htmlgame inspired by breakout. It features 
+Star Break is a html5 game inspired by breakout. It features 
 levels full of explosives, extra balls and even nukes. 
 I hope you will enjoy it.
 
@@ -20,6 +20,9 @@ Supported browsers
 
 ...Opera doesn't seem to like <audio> and crashes.
 
+Audio is generally a bit buggy - and I tried hard to get it just that
+good. :(
+
 Technology and tools used
 -------------------------
 Star Break uses the canvas tag for rendering. The sound effects
@@ -29,6 +32,5 @@ Rake is used for the asset pipeline.
 Copyright
 -------
 Copyright 2011 by Jonas Wagner
-
 
 License to be defined.
