@@ -1,5 +1,6 @@
 compiler.jar
 cache.manifest
 sfx
+dist
 .*
 *.js
