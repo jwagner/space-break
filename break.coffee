@@ -46,6 +46,7 @@ RESOURCES =
     brick_explosion: 'gfx/explosion.png'
     ball: 'gfx/ball.png'
     paddle: 'gfx/paddle.png'
+    paddle_light: 'gfx/paddle_light.png'
     pong: 'sfx/pong.ogg'
     ping: 'sfx/ping.ogg'
     thud: 'sfx/thud.ogg'
@@ -462,6 +463,9 @@ class Ball
     draw: (ctx) ->
         img = resources['ball']
         ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
+        ctx.globalCompositeOperation = 'lighter'
+        ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
+        ctx.globalCompositeOperation = 'source-over'
 
 
 class ScoreTracker
@@ -580,6 +584,10 @@ class Paddle
         sh = @shape.height*0.75
         ctx.globalCompositeOperation = 'lighter'
         ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left, @shape.top, @shape.width, @shape.height)
+        ctx.drawImage(resources['background'], sx, sy, sw, sh, @shape.left+2, @shape.top+2, @shape.width-2, @shape.height-2)
+        ctx.globalAlpha = 0.7
+        ctx.drawImage(resources['paddle_light'], @shape.left-20, @shape.top-20)
+        ctx.globalAlpha = 1.0
         ctx.globalCompositeOperation = 'source-over'
 
 
