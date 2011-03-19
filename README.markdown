@@ -1,9 +1,14 @@
 STAR BREAK
 ==========
 
-Star Break is a html5 game inspired by breakout. It features 
+Star Break is a html5 acrade 'ball and paddle' game. It features 
 levels full of explosives, extra balls and even nukes. 
 I hope you will enjoy it.
+
+*If you like this game, you will probably also like my other game JS WARS*
+
+
+http://29a.ch/jswars/
 
 A little bit of history
 -----------------------
@@ -26,11 +31,28 @@ good. :(
 Technology and tools used
 -------------------------
 Star Break uses the canvas tag for rendering. The sound effects
-were created using csound. The graphics were made using the gimp.
+were created using csound and played using the audio tag.
+The graphics were made using the gimp.
 Rake is used for the asset pipeline.
+
+Assets
+------
+All the assets in the game are selfmade - that's why they look like
+programmer art.
+
+Open points
+-----------
+The rendering is highly inefficient, I might improve this at some point.
 
 Copyright
 -------
 Copyright 2011 by Jonas Wagner
 
-License to be defined.
+The code (break.coffee, Rakefile) is licensed GPL V3 - http://www.gnu.org/licenses/gpl.html
+
+The assets are licensed under Creative Commons BY NC SA - http://creativecommons.org/licenses/by-nc-sa/3.0/
+
+If you want to use it and that doesn't work for you please
+let met know.
+
+PLEASE LET ME KNOW IF YOU DO SOMETHING COOL WITH IT.

@@ -31,8 +31,12 @@ end
 task :build_dist => [:clean_dist, MANIFEST_OGG] do
     sh "mkdir dist/sfx && cp sfx/*.ogg dist/sfx"
     sh "mkdir dist/gfx && cp gfx/* dist/gfx"
-    sh *(%w(cp) + JS + CSS + HTML + %w(dist))
+    sh *(%w(cp .htaccess) + JS + CSS + HTML + %w(dist))
     sh "mv dist/break.min.js dist/break.js"
+end
+
+task :publish => [:build_dist] do
+    sh "rsync -rv dist/ 29a.ch:/var/www/29a.ch/star-break"
 end
 
 file MANIFEST_DEV => OGG + GFX + OTHERS + %w(index.html) do |t|
