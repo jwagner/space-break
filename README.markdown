@@ -16,7 +16,6 @@ A little bit of history
 Star Break started out as coffee-break - a little project
 I started to get into coffee script. Because it turned out
 to be a lot of fun I decided to turn it into a complete game.
-Star Break was born.
 
 Supported browsers
 ------------------
