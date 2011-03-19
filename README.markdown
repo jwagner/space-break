@@ -2,13 +2,14 @@ STAR BREAK
 ==========
 
 Star Break is a html5 acrade 'ball and paddle' game written in coffee-script.
+
 It features  levels full of explosives, extra balls and even nukes. 
 I hope you will enjoy it.
 
 *If you like this game, you will probably also like my other game JS WARS*
 
 
-http://29a.ch/jswars/
+<http://29a.ch/jswars/>
 
 A little bit of history
 -----------------------
@@ -23,7 +24,7 @@ Supported browsers
  * Chrome 9
  * Safari (no ogg - no audio)
 
-...Opera doesn't seem to like <audio> and crashes.
+...Opera doesn't seem to like audio and crashes.
 
 Audio is generally a bit buggy - and I tried hard to get it just that
 good. :(
@@ -48,11 +49,11 @@ Copyright
 -------
 Copyright 2011 by Jonas Wagner
 
-The code (break.coffee, Rakefile) is licensed GPL V3 - http://www.gnu.org/licenses/gpl.html
+The code (break.coffee, Rakefile) is licensed GPL V3 - <http://www.gnu.org/licenses/gpl.html>
 
-The assets are licensed under Creative Commons BY NC SA - http://creativecommons.org/licenses/by-nc-sa/3.0/
+The assets are licensed under Creative Commons BY NC SA - <http://creativecommons.org/licenses/by-nc-sa/3.0/>
 
-If you want to use it and that doesn't work for you please
-let met know.
+*PLEASE LET ME KNOW IF YOU DO SOMETHING COOL WITH IT.*
 
-PLEASE LET ME KNOW IF YOU DO SOMETHING COOL WITH IT.
+If you want to use it and that doesn't work for you please let met know.
+
