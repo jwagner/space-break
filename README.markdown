@@ -1,8 +1,8 @@
 STAR BREAK
 ==========
 
-Star Break is a html5 acrade 'ball and paddle' game. It features 
-levels full of explosives, extra balls and even nukes. 
+Star Break is a html5 acrade 'ball and paddle' game written in coffee-script.
+It features  levels full of explosives, extra balls and even nukes. 
 I hope you will enjoy it.
 
 *If you like this game, you will probably also like my other game JS WARS*
