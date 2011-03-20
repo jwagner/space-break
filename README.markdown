@@ -1,7 +1,7 @@
-STAR BREAK
-==========
+SPACE BREAK
+===========
 
-Star Break is a html5 acrade 'ball and paddle' game written in coffee-script.
+Space Break is a html5 acrade 'ball and paddle' game written in coffee-script.
 
 It features  levels full of explosives, extra balls and even nukes. 
 I hope you will enjoy it.
@@ -13,7 +13,7 @@ I hope you will enjoy it.
 
 A little bit of history
 -----------------------
-Star Break started out as coffee-break - a little project
+Space Break started out as coffee-break - a little project
 I started to get into coffee script. Because it turned out
 to be a lot of fun I decided to turn it into a complete game.
 
@@ -30,7 +30,7 @@ good. :(
 
 Technology and tools used
 -------------------------
-Star Break uses the canvas tag for rendering. The sound effects
+Space Break uses the canvas tag for rendering. The sound effects
 were created using csound and played using the audio tag.
 The graphics were made using the gimp.
 Rake is used for the asset pipeline.
