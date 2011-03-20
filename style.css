@@ -191,6 +191,14 @@ body {
     width: 300px;
 }
 
+#credits h2 {
+    line-height: 2em;
+}
+
+#credits a {
+    color: white;
+}
+
 #header {
     font-size: 2em;
     background-color: #111;

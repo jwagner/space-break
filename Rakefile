@@ -36,7 +36,7 @@ task :build_dist => [:clean_dist, MANIFEST_OGG] do
 end
 
 task :publish => [:build_dist] do
-    sh "rsync -rv dist/ 29a.ch:/var/www/29a.ch/star-break"
+    sh "rsync -rv dist/ 29a.ch:/var/www/29a.ch/space-break"
 end
 
 file MANIFEST_DEV => OGG + GFX + OTHERS + %w(index.html) do |t|
