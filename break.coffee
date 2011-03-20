@@ -46,7 +46,7 @@ if(navigator.userAgent.match(/i(Pad|Phone|Pod)/i))
 else
     IOS = false
 
-LEVEL_KEY = 'starbreak.level'
+LEVEL_KEY = 'spacebreak.level'
 AUDIO = true
 RESOURCES =
     background: 'gfx/background.jpg'
@@ -128,15 +128,7 @@ LEVELS.push (scene) ->
             else
                 scene.bricks.push(new ColorBrick(v2(x, y), color))
 
-# steel floors
-LEVELS.push (scene) ->
-    for row in [0...3]
-        for col in [0...7]
-            x = col*(Brick.width)+Brick.width
-            y = row*(Brick.height*3.0)+Brick.height+80
-            scene.bricks.push(new HardBrick(v2(x, y)))
-    scene.bricks.push(new XtraBallBrick(v2(WIDTH/2, Brick.height*5)))
- 
+
 make_level = (height) ->
     (scene) ->
         cols = floor(WIDTH/(Brick.width))-1
@@ -160,6 +152,15 @@ make_level = (height) ->
                             scene.bricks.push(new HardBrick(v2(x, y)))
  
 LEVELS.push make_level(0.4)
+# steel floors
+LEVELS.push (scene) ->
+    for row in [0...3]
+        for col in [0...7]
+            x = col*(Brick.width)+Brick.width
+            y = row*(Brick.height*3.0)+Brick.height+80
+            scene.bricks.push(new HardBrick(v2(x, y)))
+    scene.bricks.push(new XtraBallBrick(v2(WIDTH/2, Brick.height*5)))
+ 
 # introducing the immortals
 LEVELS.push (scene) ->
     for row in [0...2]
