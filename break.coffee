@@ -48,6 +48,7 @@ else
 
 LEVEL_KEY = 'spacebreak.level'
 AUDIO = true
+SOUNDSCAPE = false
 RESOURCES =
     background: 'gfx/background.jpg'
     brick_orange: 'gfx/brick_orange.png'
@@ -1045,14 +1046,16 @@ start_game = (canvas) ->
             gameover()
             return false
         return true
-    if requestAnimFrame
+    if requestAnimFrame?
         f = ->
             if callback()
                 requestAnimFrame(f, canvas)
         requestAnimFrame(f, canvas)
     else
         INTERVAL = setInterval(callback, 1)
-    audioPlayer.play('soundscape', 0.1, true)
+    if not SOUNDSCAPE
+        audioPlayer.play('soundscape', 0.1, true)
+        SOUNDSCAPE = true
     game.render()
 
 
