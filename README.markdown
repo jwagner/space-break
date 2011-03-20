@@ -37,7 +37,7 @@ Rake is used for the asset pipeline.
 
 Assets
 ------
-All the assets in the game are selfmade - that's why they look like
+All the assets in the game are self made - that's why they look like
 programmer art.
 
 Open points
