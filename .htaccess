@@ -1,3 +1,4 @@
 AddType text/cache-manifest .manifest
 ExpiresActive On
 ExpiresDefault "access"
+ExpiresByType "application/ogg" "access plus 1 hour"
