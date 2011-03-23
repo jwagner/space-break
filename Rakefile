@@ -9,7 +9,8 @@ WAV = CSD.pathmap('sfx/%n.wav')
 MP3 = CSD.pathmap('sfx/%n.mp3')
 OGG = CSD.pathmap('sfx/%n.ogg')
 OTHERS = %w(sfx/multiball.ogg sfx/soundscape.ogg) 
-JS = %w(break.min.js yepnope.js)
+JS = %w(break.js yepnope.js)
+JS_MIN = %w(break.min.js yepnope.js)
 CSS = %w(style.css)
 HTML = %w(index.html)
 OGG_DEPS = OGG + GFX + OTHERS + JS + CSS + HTML
@@ -28,11 +29,11 @@ task :clean_dist do
     sh "rm -rf dist && mkdir dist"
 end
 
-task :build_dist => [:clean_dist, MANIFEST_OGG] do
+task :build_dist => [:clean_dist, MANIFEST_OGG, 'break.min.js'] do
     sh "mkdir dist/sfx && cp sfx/*.ogg dist/sfx"
     sh "mkdir dist/gfx && cp gfx/* dist/gfx"
-    sh *(%w(cp .htaccess) + JS + CSS + HTML + %w(dist))
-    sh "mv dist/break.min.js dist/break.js"
+    sh *(%w(cp .htaccess) + JS_MIN + CSS + HTML + %w(dist))
+    sh "cp dist/break.min.js dist/break.js"
 end
 
 task :publish => [:build_dist] do
