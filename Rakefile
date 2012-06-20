@@ -5,9 +5,9 @@ MANIFEST_IOS = 'dist/cache.ios.manifest'
 GFX = FileList['gfx/*']
 
 CSD = FileList['csound/*.csd']
-WAV = CSD.pathmap('sfx/%n.wav')
-MP3 = CSD.pathmap('sfx/%n.mp3')
-OGG = CSD.pathmap('sfx/%n.ogg')
+WAV = CSD.pathmap('sfx/%n.wav') + FileList['wav/*']
+MP3 = WAV.pathmap('sfx/%n.mp3')
+OGG = WAV.pathmap('sfx/%n.ogg')
 OTHERS = %w(sfx/multiball.ogg sfx/soundscape.ogg) 
 JS = %w(break.js yepnope.js)
 JS_MIN = %w(break.min.js yepnope.js)
@@ -64,7 +64,7 @@ file 'break.min.js' => ['break.js'] do |t|
 	sh "java -jar compiler.jar --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
 end
 
-rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|
+rule('.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}]) do |t|
     sh 'csound', t.source, "--output=#{t.name}"
 end
 
