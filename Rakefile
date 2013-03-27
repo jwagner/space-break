@@ -18,7 +18,7 @@ OGG_DEPS = OGG + GFX + OTHERS + JS + CSS + HTML
 task :default => [MANIFEST_DEV]
 
 task :monitor do
-    sh "coffee -wc *.coffee"
+    sh "coffee -wcm ."
 end
 
 task :clean do

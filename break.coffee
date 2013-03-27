@@ -320,7 +320,7 @@ class JSPerfHub
             @ctx.fillText("#{name}: #{round(bucket.average*100)/100} ms", textSpacing, textSpacing+@fontHeight*i)
             total += bucket.average
         @ctx.fillStyle = 'white'
-        @ctx.fillText("total: #{round(total*100)/100} ms / #{round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
+        @ctx.fillText("total: #{round(total*100)/100} ms  #{round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
         @ctx.fillStyle = 'black'
         @ctx.fillRect(x, 0, @sampleWidth, y)
         return

@@ -4,3 +4,4 @@ sfx
 dist
 .*
 *.js
+*.map
