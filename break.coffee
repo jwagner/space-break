@@ -27,8 +27,6 @@ if not window.console?
     window.console =
         log: ->
 
-AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext
-
 WIDTH = 640
 HEIGHT = 480
 SLOW = false
@@ -322,8 +320,7 @@ class JSPerfHub
             @ctx.fillText("#{name}: #{round(bucket.average*100)/100} ms", textSpacing, textSpacing+@fontHeight*i)
             total += bucket.average
         @ctx.fillStyle = 'white'
-        tms = round(total*100)/100
-        @ctx.fillText("total: #{ tms } ms / #{ round(1000/total) } fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
+        @ctx.fillText("total: #{round(total*100)/100} ms / #{round(1000/total)} fps", textSpacing, textSpacing+@fontHeight*(@buckets.keys.length+1))
         @ctx.fillStyle = 'black'
         @ctx.fillRect(x, 0, @sampleWidth, y)
         return
@@ -396,41 +393,6 @@ V2.random = ->
     new V2(random()-0.5, random()-0.5).normalize()
 v2 = (x, y) -> new V2(x, y)
 
-class AudioPlayerWebAudio
-    constructor: ->
-        @ctx = new AudioContext()
-        @ctx.listener.setPosition(0, 0, -1)
-        @scale = 2.0/WIDTH
-        @ratio = HEIGHT/WIDTH
-        @buffers = {}
-
-    play: (name, volume=1.0, doLoop, spatial) ->
-        buffer = @buffers[name]
-        if not buffer
-            buffer = @buffers[name] = @ctx.createBuffer(resources[name], false)
-        source = @ctx.createBufferSource()
-        source.loop = doLoop
-        source.buffer = buffer
-
-        destination = @ctx.destination
-        if volume != 1.0
-            volumeNode = @ctx.createGainNode()
-            volumeNode.gain.value = volume
-            volumeNode.connect(destination)
-            destination = volumeNode
-
-        if spatial
-            pannerNode = @ctx.createPanner()
-            if spatial.position
-                pannerNode.setPosition(spatial.position.x*@scale-1, spatial.position.y*-1*@scale+@ratio, 0)
-            if spatial.velocity
-                pannerNode.setVelocity(spatial.velocity.x*@scale-1, spatial.velocity.y*@scale*-1+@ratio, 0)
-            pannerNode.connect(destination)
-            destination = pannerNode
-
-
-        source.connect(destination)
-        source.noteOn(0)
 
 class AudioPlayerChannels
     constructor: ->
@@ -832,7 +794,7 @@ class Game
                 @scene.score.earn()
         if axis
             volume = min(1.0, ball.velocity.mag()/MAX_VELOCITY)
-            audioPlayer.play(sound, volume, false, {position: ball.position})
+            audioPlayer.play(sound, volume)
             # we don't want the ball to move to flat because it's annoying
             if abs(ball.velocity.y*2) < abs(ball.velocity.x)
                 ball.velocity.x *= 0.8
@@ -956,21 +918,7 @@ class Loader
         img.onerror = (e) => @_error(name, e)
         img.src = src
 
-    loadBinary: (name, src) ->
-        request = new XMLHttpRequest()
-        request.open('GET', src, true)
-        request.responseType = 'arraybuffer'
-        request.onload = => @_success(name, request.response)
-        request.onerror = (e) => @_error(name, e)
-        request.send()
-
     loadAudio: (name, src) ->
-        if AudioContext
-            @loadBinary(name, src)
-        else
-            @loadAudioElement(name, src)
-
-    loadAudioElement: (name, src) ->
         audio = document.createElement('audio')
         audio.preload = 'auto'
         audio.autobuffer = true
@@ -1015,10 +963,7 @@ main = ->
     ctx = canvas.getContext '2d'
     window['loader'] = loader = new Loader(RESOURCES)
     resources = loader.resources
-    if AudioContext
-        audioPlayer = new AudioPlayerWebAudio()
-    else
-        audioPlayer = new AudioPlayerChannels()
+    audioPlayer = new AudioPlayerChannels()
     check = =>
         if loader.pending > 0
             ctx.fillStyle = 'white'
