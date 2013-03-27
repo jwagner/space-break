@@ -27,7 +27,7 @@ if not window.console?
     window.console =
         log: ->
 
-AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.oAudioContext
+AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext
 
 WIDTH = 640
 HEIGHT = 480
@@ -70,7 +70,6 @@ RESOURCES =
     pong: 'sfx/pong.ogg'
     ping: 'sfx/ping.ogg'
     thud: 'sfx/thud.ogg'
-    buzz: 'sfx/buzz.ogg'
     explosion: 'sfx/explosion.ogg'
     nuke: 'sfx/nuke.ogg'
     multiball: 'sfx/multiball.ogg'
@@ -397,33 +396,6 @@ V2.random = ->
     new V2(random()-0.5, random()-0.5).normalize()
 v2 = (x, y) -> new V2(x, y)
 
-
-class AudioLoop
-    constructor: (@element) ->
-    setPosition: (position) ->
-    setVelocity: (velocity) ->
-    stop: ->
-        @element.stop()
-    destroy: ->
-        @stop
-
-class AudioLoopWebAudio
-    constructor: (@player, @source, @panner) ->
-
-    setPosition: (position) ->
-        if @panner
-            @panner.setPosition(position.x*@player.scale-1, position.y*-1*@player.scale+@player.ratio, 0)
-
-    setVelocity: (velocity) ->
-        if @panner
-            @panner.setVelocity(velocity.x*@player.scale-1, velocity.y*-1*@player.scale+@player.ratio, 0)
-
-    stop: ->
-        @source.noteOff(0)
-
-    destroy: ->
-        @stop()
-
 class AudioPlayerWebAudio
     constructor: ->
         @ctx = new AudioContext()
@@ -456,9 +428,9 @@ class AudioPlayerWebAudio
             pannerNode.connect(destination)
             destination = pannerNode
 
+
         source.connect(destination)
         source.noteOn(0)
-        return new AudioLoopWebAudio(this, source, pannerNode)
 
 class AudioPlayerChannels
     constructor: ->
@@ -476,12 +448,12 @@ class AudioPlayerChannels
         # try to find one which already has the right src first
         for audio in @channels
             if audio.src == src and @playElement(audio, src, volume, doLoop)
-                return new AudioLoop(audio)
+                return true
         # LRU
         @channels.sort((a, b) -> a.used > b.used)
         for audio in @channels
             if @playElement(audio, src, volume, doLoop)
-                return new AudioLoop(audio)
+                return true
         return false
 
     
@@ -544,21 +516,15 @@ class Circle
 class Ball
     constructor: (@position, @velocity) ->
         @shape = new Circle(@position, 10)
-        @audio = audioPlayer.play('buzz', 0.02, true, {position: @position, velocity: @velocity})
 
     draw: (ctx) ->
         img = resources['ball']
-        @audio.setPosition(@position)
-        @audio.setVelocity(@velocity)
         ctx.globalAlpha = 0.25
         ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
         ctx.globalAlpha = 1.0
         ctx.globalCompositeOperation = 'lighter'
         ctx.drawImage(img, @shape.center.x-img.width*0.5, @shape.center.y-img.height*0.5)
         ctx.globalCompositeOperation = 'source-over'
-
-    destroy: ->
-        @audio.destroy()
 
 
 class ScoreTracker
@@ -743,19 +709,11 @@ class Game
         @warmup = 10
         @reset()
 
-    destroy_balls: ->
-        if @scene
-            for ball in @scene.balls
-                ball.destroy()
-
     reset: ->
         try
             level = localStorage[LEVEL_KEY]*1
         catch error
             level = 0
-
-            #@destroy_balls()
-
         @scene =
             level: level
             gameover: false
@@ -785,29 +743,24 @@ class Game
         @scene.sprites = []
         @newBall()
 
-    # add a new ball or destroy an existing one if ball is set
     newBall: (ball) ->
         if not ball
-            @destroy_balls
             @scene.balls = [ball = @scene.balls[0]]
         if @scene.balls.length > 1
-            ball.destroy()
             balls = []
             for other_ball in @scene.balls
                 if other_ball != ball
                     balls.push(other_ball)
             @scene.balls = balls
+            return
+        @scene.score.reset()
+        if @scene.ballsLeft--
+            ball = @scene.balls[0]
+            x = max(min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
+            ball.shape.center.set(x, @scene.paddle.shape.top-ball.shape.radius-1)
+            ball.velocity = v2(random()-0.5, random()-2).normalize().muls(INITIAL_VELOCITY)
         else
-            @scene.score.reset()
-            if @scene.ballsLeft--
-                x = max(min(WIDTH-ball.shape.radius, @scene.paddle.shape.center.x), ball.shape.radius)
-                ball.shape.center.set(x, @scene.paddle.shape.top-ball.shape.radius-1)
-                ball.velocity = v2(random()-0.5, random()-2).normalize().muls(INITIAL_VELOCITY)
-            else
-                ball = @scene.balls[0]
-                ball.destroy()
-                @scene.gameover = true
-            @scene.score.reset()
+            @scene.gameover = true
 
     tick: (t) ->
         if @warmup > 0
@@ -878,7 +831,7 @@ class Game
             if @scene.balls.length == 1
                 @scene.score.earn()
         if axis
-            volume = min(0.5, ball.velocity.mag()/MAX_VELOCITY)
+            volume = min(1.0, ball.velocity.mag()/MAX_VELOCITY)
             audioPlayer.play(sound, volume, false, {position: ball.position})
             # we don't want the ball to move to flat because it's annoying
             if abs(ball.velocity.y*2) < abs(ball.velocity.x)
@@ -1064,7 +1017,6 @@ main = ->
     resources = loader.resources
     if AudioContext
         audioPlayer = new AudioPlayerWebAudio()
-        audioPlayer.ctx.listener.dopplerFactor = 10.0
     else
         audioPlayer = new AudioPlayerChannels()
     check = =>
@@ -1126,7 +1078,7 @@ window['highscores'] = gameover = ->
         if game.scene.victory
             text = "I just finished #spacebreak #html5 #game with a score of #{score}. :)"
         else
-            text = "I scored #{score} at #spacebreak html5 game and reached level #{game.scene.level} of #{LEVELS.length}. Beat me!"
+            text = "I scored #{score} at #spacebreak #html5 #game"
         document.getElementById('twattext').value = text
             
 window['credits'] = ->
