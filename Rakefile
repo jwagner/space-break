@@ -60,9 +60,7 @@ def write_manifest(name, entries)
 end
 
 file 'break.min.js' => ['break.js'] do |t|
-  sh "uglifyjs break.js > break.min.js"
-	#sh "java -jar compiler.jar --formatting=pretty_print --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
-	#sh "java -jar compiler.jar --js #{t.prerequisites[0]} --compilation_level SIMPLE_OPTIMIZATIONS  --js_output_file #{t.name}"
+	sh "uglifyjs -o #{t.name} #{t.prerequisites[0]}"
 end
 
 rule '.wav' => [proc {|f| f.pathmap 'csound/%n.csd'}] do |t|
